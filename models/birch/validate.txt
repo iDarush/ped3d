@@ -1,0 +1,6 @@
+== out/birch_lod0.glb
+info: No errors found.
+info: No warnings found.
+== out/birch_lod1.glb
+info: No errors found.
+info: No warnings found.

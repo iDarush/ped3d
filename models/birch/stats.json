@@ -1,0 +1,110 @@
+{
+  "warnings": [],
+  "textures": {
+    "bark_color.jpg": [
+      1024,
+      1024
+    ],
+    "bark_normal.png": [
+      1024,
+      1024
+    ],
+    "foliage_color.png": [
+      1024,
+      1024
+    ],
+    "foliage_normal.png": [
+      1024,
+      1024
+    ]
+  },
+  "source": {
+    "object": "Birch_Dense_Large",
+    "tris": 3652,
+    "verts": 2656,
+    "materials": [
+      "Birch_leaves",
+      "Bearch_stump"
+    ]
+  },
+  "origin_shift_m": [
+    -0.0004,
+    0.009,
+    -0.0217
+  ],
+  "height_m": 4.943,
+  "bark_u_crop": [
+    0.5,
+    1.0
+  ],
+  "foliage_atlas": {
+    "clusters": 3,
+    "scale_vs_source_uv": 1.361,
+    "effective_texel_density_vs_2048_source": 0.681,
+    "source_area_used_fraction": 0.43,
+    "opaque_fraction_of_new_atlas": 0.108,
+    "opaque_fraction_of_source_atlas": 0.229
+  },
+  "roughness": {
+    "bark": 0.9058836102485657,
+    "foliage": 0.9058836102485657
+  },
+  "fork_points": 16,
+  "lod1_twig_parts_dropped": 0,
+  "lod1_cards": {
+    "kept": 155,
+    "of": 182,
+    "area_kept_frac": 0.863,
+    "enlarge": 1.12
+  },
+  "lods": {
+    "lod0": {
+      "bark_tris": 2912,
+      "foliage_tris": 740,
+      "total_tris": 3652,
+      "verts": 2656,
+      "bbox_blender_zup": [
+        [
+          -1.23,
+          -1.275,
+          0.0
+        ],
+        [
+          0.934,
+          1.338,
+          4.943
+        ]
+      ],
+      "glb_bytes": 3069412
+    },
+    "lod1": {
+      "bark_tris": 722,
+      "foliage_tris": 627,
+      "total_tris": 1349,
+      "verts": 1323,
+      "bbox_blender_zup": [
+        [
+          -1.282,
+          -1.334,
+          0.0
+        ],
+        [
+          0.986,
+          1.392,
+          5.0
+        ]
+      ],
+      "glb_bytes": 2989532
+    }
+  },
+  "blend_image_paths": [
+    "//textures/bark_color.jpg",
+    "//textures/bark_normal.png",
+    "//textures/foliage_color.png",
+    "//textures/foliage_normal.png"
+  ],
+  "materials": [
+    "bark",
+    "foliage"
+  ]
+}

@@ -1,0 +1,8 @@
+lod0 birch_lod0_bark mat=bark alphaTest=0 transparent=false side=0 map:compressed fmt=36492 1024x1024 mips=11 cs=srgb | normalMap:compressed fmt=37808 1024x1024 mips=11 cs=srgb-linear
+lod0 birch_lod0_foliage mat=foliage alphaTest=0.5 transparent=false side=2 map:compressed fmt=36492 1024x1024 mips=11 cs=srgb | normalMap:compressed fmt=37808 1024x1024 mips=11 cs=srgb-linear
+lod0 tris=3652 bbox min -1.23,0.00,-1.34 max 0.93,4.94,1.28
+lod1 birch_lod1_bark mat=bark alphaTest=0 transparent=false side=0 map:compressed fmt=36492 1024x1024 mips=11 cs=srgb | normalMap:compressed fmt=37808 1024x1024 mips=11 cs=srgb-linear
+lod1 birch_lod1_foliage mat=foliage alphaTest=0.5 transparent=false side=2 map:compressed fmt=36492 1024x1024 mips=11 cs=srgb | normalMap:compressed fmt=37808 1024x1024 mips=11 cs=srgb-linear
+lod1 tris=1349 bbox min -1.28,0.00,-1.39 max 0.99,5.00,1.33
+OK
+

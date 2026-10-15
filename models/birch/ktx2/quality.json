@@ -1,0 +1,19 @@
+{
+ "foliage_mask_IoU": 0.9818,
+ "foliage_mask_mismatch_pct": 1.84,
+ "foliage_rgb_psnr_db_opaque": 30.0,
+ "foliage_alpha_coverage_mip0_mip2_mip4": [
+  0.1074,
+  0.1016,
+  0.0876
+ ],
+ "bark_color_psnr_db": 35.3,
+ "bark_normal_angular_err_deg_mean_p99": [
+  0.86,
+  2.84
+ ],
+ "foliage_normal_angular_err_deg_mean_p99": [
+  2.04,
+  8.33
+ ]
+}
