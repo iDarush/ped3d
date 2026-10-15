@@ -137,9 +137,10 @@ const segTo = computed(() => (proc.value && procSeg.value ? procSeg.value.to : l
 const shownDistance = ref(0),
   grade = ref(0),
   elev = ref(0);
-function onFrame(f: { distanceM: number; gradePct: number; groundM: number; fps?: number; calls?: number; triangles?: number; birches?: { lod0: number; lod1: number } }) {
+function onFrame(f: { distanceM: number; gradePct: number; groundM: number; fps?: number; calls?: number; triangles?: number; birches?: { lod0: number; lod1: number }; render?: { width: number; height: number } }) {
   if (f.fps != null) fpsText.value = `${f.fps.toFixed(0)} fps · ${f.calls} draw calls · ${((f.triangles ?? 0) / 1000).toFixed(0)}k tris · q=${quality}`;
   if (birchPreview && f.birches) fpsText.value += ` · birch ${f.birches.lod0}+${f.birches.lod1}`;
+  if (f.render) fpsText.value += ` · render ${f.render.width}×${f.render.height}`;
   shownDistance.value = live ? liveDistance.value : f.distanceM;
   grade.value = Number.isFinite(f.gradePct) ? f.gradePct : 0;
   elev.value = f.groundM;

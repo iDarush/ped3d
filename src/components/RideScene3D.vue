@@ -14,7 +14,7 @@ import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { angleDelta, buildGeoTrack, lookAheadBearing, sampleTrack, trackGrade, type GeoPoint, type GeoTrack } from "../lib/geoTrack";
 import { RideClock } from "../lib/rideClock";
 import { loadProcScene, SUN_DIR, type BuiltScene } from "../lib/procScene";
-import { QUALITY, type Quality } from "../lib/quality";
+import { QUALITY, renderPixelRatio, type Quality } from "../lib/quality";
 
 const props = withDefaults(
   defineProps<{
@@ -43,7 +43,7 @@ const props = withDefaults(
 );
 const emit = defineEmits<{
   ready: [info: { from: number; to: number; triangles: number; trees: number }];
-  frame: [info: { distanceM: number; bearing: number; groundM: number; gradePct: number; fps: number; calls: number; triangles: number; forest: number; birches: { lod0: number; lod1: number } }];
+  frame: [info: { distanceM: number; bearing: number; groundM: number; gradePct: number; fps: number; calls: number; triangles: number; forest: number; birches: { lod0: number; lod1: number }; render: { width: number; height: number } }];
 }>();
 
 const container = ref<HTMLDivElement | null>(null);
@@ -53,6 +53,7 @@ const attribution = ref("");
 let track: GeoTrack = buildGeoTrack(props.points);
 const clock = new RideClock();
 let renderer: THREE.WebGLRenderer | null = null;
+let renderWidth = 0, renderHeight = 0;
 let built: BuiltScene | null = null;
 let raf = 0,
   disposed = false,
@@ -96,7 +97,10 @@ watch(
 function resize() {
   const el = container.value;
   if (!el || !renderer) return;
+  renderer.setPixelRatio(renderPixelRatio(el.clientWidth, el.clientHeight, window.devicePixelRatio, preset));
   renderer.setSize(el.clientWidth, el.clientHeight, false);
+  const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+  renderWidth = size.x; renderHeight = size.y;
   camera.aspect = el.clientWidth / Math.max(1, el.clientHeight);
   camera.updateProjectionMatrix();
 }
@@ -169,7 +173,7 @@ function frame(now: number) {
   built.update(camera.position, fwd, { detailR: Math.min(preset.detailR, cardR), cardR, grassR: preset.grassR, fogFar: fog.far });
   const t0 = performance.now();
   renderer.render(scene, camera);
-  (window as unknown as { __rideInfo: object }).__rideInfo = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, blades: built.grassStats().blades, birches: built.birchStats() };
+  (window as unknown as { __rideInfo: object }).__rideInfo = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, blades: built.grassStats().blades, birches: built.birchStats(), render: { width: renderWidth, height: renderHeight } };
   if (props.testMode) {
     // headless (software GL) is far too slow for a continuous loop: render a few frames, report the cost, stop
     renderer.getContext().readPixels(0, 0, 1, 1, renderer.getContext().RGBA, renderer.getContext().UNSIGNED_BYTE, new Uint8Array(4)); // wait for the GPU
@@ -187,13 +191,12 @@ function frame(now: number) {
     fpsT0 = now;
     (window as unknown as { __rideFps: number }).__rideFps = fps;
   }
-  emit("frame", { distanceM: d, bearing, groundM: ground, gradePct: trackGrade(track, d), fps, calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, forest: f, birches: built.birchStats() });
+  emit("frame", { distanceM: d, bearing, groundM: ground, gradePct: trackGrade(track, d), fps, calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, forest: f, birches: built.birchStats(), render: { width: renderWidth, height: renderHeight } });
 }
 
 onMounted(async () => {
   const el = container.value!;
   renderer = new THREE.WebGLRenderer({ antialias: preset.antialias, preserveDrawingBuffer: props.testMode, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, preset.pixelRatio));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.85;
   renderer.shadowMap.enabled = preset.shadows;

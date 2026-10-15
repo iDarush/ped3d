@@ -23,7 +23,7 @@ for (const d of D)
   for (const cam of cams) {
     const name = process.env.NAME ?? `proc-${d}m-${cam}${process.env.SUFFIX ?? ""}`;
     if (process.argv[2] && !name.includes(process.argv[2])) continue;
-    const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+    const page = await browser.newPage({ viewport: { width: Number(process.env.WIDTH ?? 1280), height: Number(process.env.HEIGHT ?? 720) }, deviceScaleFactor: Number(process.env.DPR ?? 1) });
     page.setDefaultTimeout(240000);
     const errors = [];
     page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") errors.push(`${m.type()}: ${m.text()}`); });
@@ -77,6 +77,7 @@ for (const d of D)
     console.log(`${name}: ready ${(tReady / 1000).toFixed(1)} s, headless (${software ? "forced SwiftShader" : "browser default GL"}) ${timing}; draw calls ${info?.calls}, triangles ${info?.triangles}${info?.blades != null ? `, grass blades ${info.blades}` : ""}`, errors.length ? "ISSUES:\n  " + errors.join("\n  ") : "no console errors");
     console.log("GPU:", gpu);
     if (info?.birches) console.log("Local birch instances:", JSON.stringify(info.birches));
+    if (info?.render) console.log("Drawing buffer:", JSON.stringify(info.render));
     if (motion) console.log("Ride intervals (headless):", JSON.stringify(motion));
     if (errors.some((e) => !e.startsWith("warning"))) failures++;
     await page.close();

@@ -877,16 +877,22 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
         const bark = birch.lods[0].bark.material;
         const leaves = noBackfaceFlip(birch.lods[0].leaves.material);
         leaves.alphaToCoverage = opts.quality.antialias;
+        if (opts.quality.liteTrees) leaves.normalMap = null;
         shade.patch(bark, 2); shade.patch(leaves, 3);
         foliage.patch(bark, 2);
         foliage.patch(leaves, 1, { c: V(0, 0.65, 0), r: V(0.3, 0.4, 0.3) });
         const leafShadow = track(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: leaves.map, alphaTest: leaves.alphaTest, side: THREE.DoubleSide }));
         foliage.patch(leafShadow, 1);
         for (const [level, lod] of birch.lods.entries()) {
-          const capacity = level === 0 ? 8 : 16;
+          const capacity = level === 0 ? opts.quality.birchDetailCount : opts.quality.birchSimpleCount;
           const b = mkInst(lod.bark.geometry, bark, 0, false, true, capacity);
           const l = mkInst(lod.leaves.geometry, leaves, 0, true, true, capacity);
           if (l) l.mesh.customDepthMaterial = leafShadow;
+          for (const slot of [b, l]) {
+            if (!slot) continue;
+            slot.mesh.castShadow = opts.quality.shadows && opts.quality.birchShadows;
+            slot.mesh.receiveShadow = opts.quality.shadows && opts.quality.birchShadows;
+          }
           birchSlots.push({ bark: b, leaves: l });
         }
       } catch (error) {
@@ -944,7 +950,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
       birchCandidates.sort((a, b) => a.dd - b.dd || a.i - b.i);
       let detailed = 0, simple = 0;
       for (const { i, dd } of birchCandidates) {
-        const level = dd < 20 ** 2 && detailed < 8 ? 0 : simple < 16 ? 1 : -1;
+        const level = dd < 20 ** 2 && detailed < opts.quality.birchDetailCount ? 0 : simple < opts.quality.birchSimpleCount ? 1 : -1;
         if (level < 0) { put(slots.hiT[0], i); put(slots.hiC[0], i); }
         else {
           put(birchSlots[level].bark, i); put(birchSlots[level].leaves, i);
