@@ -4,7 +4,7 @@ import * as THREE from "three";
  * roadProfile holds signed distance from centre and ribbon half-width, in metres.
  * Shoulder variation uses world coordinates so adjacent segments stay connected.
  */
-export function patchRoadSurface(material: THREE.MeshStandardMaterial, gravel: THREE.Texture, shoulder = false) {
+export function patchRoadSurface(material: THREE.MeshStandardMaterial, gravel: THREE.Texture, shoulder = false, asphalt = false) {
   const previous = material.onBeforeCompile;
   const key = material.customProgramCacheKey();
   material.onBeforeCompile = (shader, renderer) => {
@@ -31,6 +31,8 @@ float roadNoise(vec2 p) {
              mix(roadHash(i + vec2(0, 1)), roadHash(i + vec2(1)), f.x), f.y);
 }
 ` + shader.fragmentShader.replace("#include <map_fragment>", `#include <map_fragment>
+${asphalt ? "diffuseColor.rgb = mix(vec3(0.09, 0.093, 0.095), diffuseColor.rgb, 0.22);" : ""}
+${shoulder ? "diffuseColor.rgb = mix(vec3(0.12, 0.105, 0.08), diffuseColor.rgb, 0.45);" : ""}
 float roadMacro = roadNoise(vRoadWorld * 0.18);
 float roadFine = roadNoise(vRoadWorld * 1.7);
 float roadEdge = abs(vRoadProfile.x);
@@ -52,6 +54,9 @@ float wheelOffset = min(0.78, roadHalf * 0.48);
 float wear = 1.0 - smoothstep(0.13, 0.42, abs(roadEdge - wheelOffset));
 diffuseColor.rgb *= 1.0 - wear * smoothstep(0.9, 1.6, roadHalf) * 0.055;
 `}`);
+    if (asphalt) shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = max(roughnessFactor, 0.92);",
+    );
   };
-  material.customProgramCacheKey = () => key + "|road-surface-v1|" + shoulder;
+  material.customProgramCacheKey = () => key + "|road-surface-v2|" + shoulder + "|" + asphalt;
 }

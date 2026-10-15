@@ -146,6 +146,8 @@ float gst = textureLod(uWindNoise, (root.xz - wdir * uTime * 3.0) / 34.0, 0.0).r
 vGust = gst * uWind;
 float bend = (aBladeB.y + (0.15 + 0.9 * gst) * uWind + 0.08 * sin(uTime * 3.1 + root.x * 1.7 + root.z * 1.3) * uWind) * position.y * position.y;
 vec3 transformed = vec3(position.x * wdt * bc, position.y * h, -position.x * wdt * bs);
+// Authored curvature follows each blade's orientation, including with wind off.
+transformed.xz += vec2(bs, bc) * h * 0.6 * position.y * position.y * (1.0 - aWoodland);
 if (aWoodland > 0.5) {
   float along = position.y;
   float leafWidth = 0.18 + 0.82 * sin(along * 3.14159265);
@@ -178,7 +180,7 @@ if (aWoodland > 0.5) vBladeCol = col * mix(0.7, 0.94, position.y);`,
         .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(0.95, 0.8, vGust);")
         .replace("#include <normal_fragment_begin>", THREE.ShaderChunk.normal_fragment_begin.replace("float faceDirection = gl_FrontFacing ? 1.0 : - 1.0;", "float faceDirection = 1.0;"));
   };
-  mat.customProgramCacheKey = () => "grass-blades-v3";
+  mat.customProgramCacheKey = () => "grass-blades-v4";
   const mesh = new THREE.Mesh(geo, mat);
   mesh.frustumCulled = false;
   mesh.receiveShadow = opts.receiveShadow;
@@ -199,10 +201,12 @@ if (aWoodland > 0.5) vBladeCol = col * mix(0.7, 0.94, position.y);`,
       const [wg, ws, wf, wd] = opts.weights(x, z);
       const free = opts.roadFree(x, z);
       const woodland = wf > 0.5 && wf > wg && wf > wd;
+      const meadow = !woodland && wg > wd && wg > 0.5;
       // Five leaves per accepted woodland root, with shared fade rank. Group
       // probability is divided by five to keep the old forest vertex budget.
       const patchiness = 0.5 + 0.5 * Math.sin(x * 0.63 + Math.sin(z * 0.41)) * Math.sin(z * 0.51);
       let p = woodland ? wf * 0.012 * smooth(0.2, 0.75, patchiness) : wg + wd * 0.35 + ws * 0.0;
+      if (meadow) p /= 3; // three connected blades per meadow root, same expected budget
       if (free < 0.2) p = 0; // on the road
       else if (free < 1.2) p *= 0.5; // gravel shoulder
       const r1 = rnd(),
@@ -228,7 +232,12 @@ if (aWoodland > 0.5) vBladeCol = col * mix(0.7, 0.94, position.y);`,
       const patch = 0.5 + 0.5 * Math.sin(x * 0.47 + Math.sin(z * 0.31)) * Math.sin(z * 0.39);
       const verge = 0.65 + 0.35 * smooth(0.7, 2.5, free);
       const hgt = stub ? 0.12 + r2 * 0.1 : wf > 0.5 ? 0.12 + r2 * 0.16 : (0.14 + r2 * r2 * 0.28 * patch) * verge;
-      out.push(x, opts.heightAt(x, z) - 0.04, z, r3 * Math.PI * 2, hgt, (r4 - 0.5) * 0.5, r5 * 0.999, rnd(), 0);
+      for (let blade = 0; blade < (meadow ? 3 : 1); blade++) {
+        const angle = r3 * Math.PI * 2 + blade * 2.4;
+        const bx = x + (meadow ? Math.cos(angle) * 0.025 : 0);
+        const bz = z + (meadow ? Math.sin(angle) * 0.025 : 0);
+        out.push(bx, opts.heightAt(bx, bz) - 0.04, bz, angle, hgt * (blade ? 0.8 : 1), (r4 - 0.5) * 0.5, r5 * 0.999, rnd(), 0);
+      }
     }
     return new Float32Array(out);
   };

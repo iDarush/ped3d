@@ -7,6 +7,7 @@ import { createFoliage, type Foliage } from "./foliage";
 import { createGrassField } from "./grassField";
 import type { QualityPreset } from "./quality";
 import { patchRoadSurface } from "./roadSurface";
+import { smoothRoad } from "./roadCurve";
 
 export interface SceneData {
   name: string;
@@ -93,7 +94,7 @@ export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer,
   // PBR companions (TextureCan / ambientCG): normal maps and packed AO (R) + roughness (G)
   const N = Object.fromEntries(
     await Promise.all(
-      ["grass_n", "soil_n", "forestfloor_n", "asphalt_n", "asphalt_orm", "gravel_n", "gravel_orm", "bark_n", "bark_orm", "roof_n", "roof_orm", "facade_brick_n", "facade_brick_orm", "facade_plaster_n", "facade_plaster_orm", "wall_brick_n", "wall_brick_orm", "wall_plaster_n", "wall_plaster_orm"].map(async (n) => [n, await tex(ASSETS + n + ".jpg", false)] as const),
+      ["grass_n", "soil_n", "forestfloor_n", "gravel_n", "gravel_orm", "bark_n", "bark_orm", "roof_n", "roof_orm", "facade_brick_n", "facade_brick_orm", "facade_plaster_n", "facade_plaster_orm", "wall_brick_n", "wall_brick_orm", "wall_plaster_n", "wall_plaster_orm"].map(async (n) => [n, await tex(ASSETS + n + ".jpg", false)] as const),
     ),
   ) as Record<string, THREE.Texture>;
   const pbr = (role: string, normalScale = 1) => ({ normalMap: N[role + "_n"], normalScale: new THREE.Vector2(normalScale, normalScale), aoMap: N[role + "_orm"], roughnessMap: N[role + "_orm"], roughness: 1 });
@@ -391,8 +392,9 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     let runS = -1;
     const flush = () => {
       if (run.length > 1) {
-        ribbon(run, (groups[runS] ??= emptyRibbon()), 0.1);
-        ribbon(run, shoulder, 0.06, 0.4);
+        const rounded = smoothRoad(run);
+        ribbon(rounded, (groups[runS] ??= emptyRibbon()), 0.1);
+        ribbon(rounded, shoulder, 0.06, 0.4);
       }
     };
     for (let i = 0; i < trackArr.length / 6; i++) {
@@ -407,7 +409,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     }
     flush();
     const mats: Record<number, THREE.Material> = {
-      0: new THREE.MeshStandardMaterial({ map: T.asphalt, ...pbr("asphalt", 0.28), color: 0xd0d0d0, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }),
+      0: new THREE.MeshStandardMaterial({ map: T.asphalt, roughness: 0.95, color: 0xd0d0d0, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }),
       1: new THREE.MeshStandardMaterial({ map: T.gravel, ...pbr("gravel"), color: 0xd8c8a8, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }),
       2: new THREE.MeshStandardMaterial({ map: T.gravel, ...pbr("gravel"), color: 0xa8a29a, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }),
     };
@@ -418,7 +420,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
       geo.setAttribute("roadProfile", new THREE.Float32BufferAttribute(g.profile, 2));
       geo.computeVertexNormals();
       triangles += g.pos.length / 9;
-      patchRoadSurface(m, T.gravel, verge);
+      patchRoadSurface(m, T.gravel, verge, name === "road-0");
       shade.patch(m, 1); // canopy shade on roads through the forest
       const mesh = new THREE.Mesh(geo, track(m));
       mesh.receiveShadow = true;
@@ -652,6 +654,24 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
         }
       }
     };
+    const rootedTrunk = (g: Geo, top: number, radius: number, tip: number) => {
+      trunk(g, 0, 0.035, radius * 1.8, radius * 0.95);
+      trunk(g, 0.035, top, radius * 0.95, tip);
+      // Low buttress wedges sink below the terrain with the trunk's -0.2 m offset.
+      for (let k = 0; k < 4; k++) {
+        const a = k * Math.PI * 0.5 + 0.3;
+        const radial = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
+        const side = new THREE.Vector3(-Math.sin(a), 0, Math.cos(a)).multiplyScalar(radius * 0.45);
+        const peak = radial.clone().multiplyScalar(radius * 0.85); peak.y = 0.025;
+        const end = radial.clone().multiplyScalar(radius * (2.8 + (k % 2) * 0.5)); end.y = 0.003;
+        const left = radial.clone().multiplyScalar(radius).add(side);
+        const right = radial.clone().multiplyScalar(radius).sub(side);
+        for (const tri of [[left, end, peak], [end, right, peak]]) {
+          const n = tri[1].clone().sub(tri[0]).cross(tri[2].clone().sub(tri[0])).normalize();
+          for (const p of tri) { g.pos.push(p.x, p.y, p.z); g.nrm.push(n.x, n.y, n.z); g.uv.push(p.x * 20, p.y * 20); }
+        }
+      }
+    };
     const randDir = () => new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize();
     // Tapered structural limbs share the trunk mesh; no extra draw calls.
     const limb = (g: Geo, from: THREE.Vector3, to: THREE.Vector3, radius: number) => {
@@ -688,7 +708,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
       hiCrown = [G(), G(), G(), G()],
       loCrown = [G(), G(), G(), G()],
       loTrunk = [G(), G(), G(), null];
-    trunk(hiTrunk[0]!, 0, 0.62, 0.016, 0.008);
+    rootedTrunk(hiTrunk[0]!, 0.62, 0.016, 0.008);
     const lite = opts.quality.liteTrees;
     for (let k = 0; k < 4; k++) {
       const a = k * 2.4;
@@ -699,7 +719,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     crossCards(loCrown[0], new THREE.Vector3(0, 0.64, 0), 0.34, 0.36, 3);
     trunk(loTrunk[0]!, 0, 0.5, 0.016, 0.01, 3);
     // Scots pine: long bare trunk, flat-topped crown of branch cards
-    trunk(hiTrunk[1]!, 0, 0.97, 0.011, 0.005);
+    rootedTrunk(hiTrunk[1]!, 0.97, 0.011, 0.005);
     // Scots pine: a few twisted limbs and an irregular, flat-topped crown of needle clumps
     for (let k = 0; k < (lite ? 3 : 4); k++) {
       const cx = (R() - 0.5) * 0.16, cz = (R() - 0.5) * 0.16;
@@ -711,7 +731,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     card(loCrown[1], new THREE.Vector3(0, 0.86, 0), new THREE.Vector3(0.2, 0, 0), new THREE.Vector3(0, 0, 0.2), new THREE.Vector3(0, 0.8, 0));
     // Spruce: short, staggered needle sprays rather than metre-long flat branch cards.
     // Two differently tilted sprays per branch preserve volume when viewed from below.
-    trunk(hiTrunk[2]!, 0, 1.0, 0.012, 0.003);
+    rootedTrunk(hiTrunk[2]!, 1.0, 0.012, 0.003);
     const whorls = lite ? 6 : 9;
     for (let w = 0; w < whorls; w++) {
       const y = 0.22 + (w / whorls) * 0.73,
