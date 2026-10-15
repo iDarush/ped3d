@@ -25,7 +25,7 @@ const smooth = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
 };
-const STRIDE = 8; // x, y, z, rot | height, lean, rank, var
+const STRIDE = 9; // x, y, z, rot | height, lean, rank, var | woodland leaf
 
 export function createGrassField(opts: {
   radius: number; // full patch radius (blades fade out towards it)
@@ -71,6 +71,7 @@ export function createGrassField(opts: {
   ib.setUsage(THREE.DynamicDrawUsage);
   geo.setAttribute("aBladeA", new THREE.InterleavedBufferAttribute(ib, 4, 0));
   geo.setAttribute("aBladeB", new THREE.InterleavedBufferAttribute(ib, 4, 4));
+  geo.setAttribute("aWoodland", new THREE.InterleavedBufferAttribute(ib, 1, 8));
   geo.instanceCount = 0;
 
   // tileable value noise for the wind gusts
@@ -113,7 +114,7 @@ export function createGrassField(opts: {
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, uniforms);
     sh.vertexShader =
-      `attribute vec4 aBladeA, aBladeB;
+      `attribute vec4 aBladeA, aBladeB; attribute float aWoodland;
 uniform sampler2D uWindNoise, uGrassTex, uFarTex, uShade;
 uniform vec4 uFarRect; uniform vec3 uCam; uniform vec2 uR, uShadeO, uShadeS;
 uniform float uTime, uWind;
@@ -138,11 +139,20 @@ float dens = min(1.0, pow(uR.x / max(d, uR.x), 1.3)) * (1.0 - smoothstep(uR.y * 
 float grow = smoothstep(aBladeB.z, aBladeB.z + 0.12, dens) * (1.0 - smoothstep(uR.y * 0.8, uR.y, d));
 float h = aBladeB.x * grow;
 float wdt = 0.022 * (0.7 + 0.6 * aBladeB.w) * clamp(inversesqrt(max(dens, 0.05)), 1.0, 1.4); // avoid broad distant ribbons
+// Woodland plants are low arching leaves, not miniature upright grass spikes.
+wdt = mix(wdt, 0.11 * (0.8 + 0.4 * aBladeB.w) * grow, aWoodland);
 vec2 wdir = normalize(vec2(0.8, 0.6));
 float gst = textureLod(uWindNoise, (root.xz - wdir * uTime * 3.0) / 34.0, 0.0).r;
 vGust = gst * uWind;
 float bend = (aBladeB.y + (0.15 + 0.9 * gst) * uWind + 0.08 * sin(uTime * 3.1 + root.x * 1.7 + root.z * 1.3) * uWind) * position.y * position.y;
 vec3 transformed = vec3(position.x * wdt * bc, position.y * h, -position.x * wdt * bs);
+if (aWoodland > 0.5) {
+  float along = position.y;
+  float leafWidth = 0.18 + 0.82 * sin(along * 3.14159265);
+  transformed.xz *= leafWidth;
+  transformed.xz += vec2(bs, bc) * along * h * 1.7;
+  transformed.y = h * (sin(along * 3.14159265) * 0.45 + along * 0.12);
+}
 transformed.xz += wdir * bend * h * 0.6;
 transformed.y -= bend * bend * h * 0.25;
 transformed += root;
@@ -154,9 +164,12 @@ vec3 col = mix(gm, gm * clamp(farc / lf, 0.75, 1.3) * clamp(lf / lg, 0.7, 1.4), 
 vec2 shv = textureLod(uShade, (root.xz - uShadeO) / uShadeS, 0.0).rg;
 // the texture mean is greyer than the ground looks (the terrain shader adds contrast): restore saturation
 col = max(vec3(0.0), mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, 1.6));
+vec3 woodlandCol = mix(vec3(0.12, 0.17, 0.055), vec3(0.18, 0.12, 0.055), smoothstep(0.72, 0.95, aBladeB.w));
+col = mix(col, woodlandCol, aWoodland * 0.8);
 col *= mix(1.0, 0.5, shv.r) * (1.0 - 0.35 * shv.g);
 col *= 0.85 + 0.3 * aBladeB.w;
-vBladeCol = col * mix(0.45, 1.25, position.y) * mix(vec3(1.0), vec3(1.08, 1.06, 0.8), position.y * 0.5);`,
+vBladeCol = col * mix(0.45, 1.25, position.y) * mix(vec3(1.0), vec3(1.08, 1.06, 0.8), position.y * 0.5);
+if (aWoodland > 0.5) vBladeCol = col * mix(0.7, 0.94, position.y);`,
         );
     sh.fragmentShader =
       "varying vec3 vBladeCol; varying float vGust;\n" +
@@ -165,7 +178,7 @@ vBladeCol = col * mix(0.45, 1.25, position.y) * mix(vec3(1.0), vec3(1.08, 1.06, 
         .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(0.95, 0.8, vGust);")
         .replace("#include <normal_fragment_begin>", THREE.ShaderChunk.normal_fragment_begin.replace("float faceDirection = gl_FrontFacing ? 1.0 : - 1.0;", "float faceDirection = 1.0;"));
   };
-  mat.customProgramCacheKey = () => "grass-blades-v2";
+  mat.customProgramCacheKey = () => "grass-blades-v3";
   const mesh = new THREE.Mesh(geo, mat);
   mesh.frustumCulled = false;
   mesh.receiveShadow = opts.receiveShadow;
@@ -185,8 +198,11 @@ vBladeCol = col * mix(0.45, 1.25, position.y) * mix(vec3(1.0), vec3(1.08, 1.06, 
         z = (tj + rnd()) * TILE;
       const [wg, ws, wf, wd] = opts.weights(x, z);
       const free = opts.roadFree(x, z);
-      // where: meadow/grass dense, stubble fields short and sparse, forest floor sparse, ploughed soil none
-      let p = wg + wd * 0.35 + wf * 0.06 + ws * 0.0;
+      const woodland = wf > 0.5 && wf > wg && wf > wd;
+      // Five leaves per accepted woodland root, with shared fade rank. Group
+      // probability is divided by five to keep the old forest vertex budget.
+      const patchiness = 0.5 + 0.5 * Math.sin(x * 0.63 + Math.sin(z * 0.41)) * Math.sin(z * 0.51);
+      let p = woodland ? wf * 0.012 * smooth(0.2, 0.75, patchiness) : wg + wd * 0.35 + ws * 0.0;
       if (free < 0.2) p = 0; // on the road
       else if (free < 1.2) p *= 0.5; // gravel shoulder
       const r1 = rnd(),
@@ -195,12 +211,24 @@ vBladeCol = col * mix(0.45, 1.25, position.y) * mix(vec3(1.0), vec3(1.08, 1.06, 
         r4 = rnd(),
         r5 = rnd();
       if (r1 > p) continue;
+      if (woodland) {
+        const rank = r5 * 0.999;
+        for (let leaf = 0; leaf < 5; leaf++) {
+          const angle = r3 * Math.PI * 2 + leaf * 2.4;
+          const lx = x + Math.cos(angle) * 0.035, lz = z + Math.sin(angle) * 0.035;
+          // Keep the full group clear of the road, even at narrow verges.
+          if (opts.roadFree(lx, lz) < 0.5) continue;
+          const height = 0.08 + rnd() * 0.06;
+          out.push(lx, opts.heightAt(lx, lz) - 0.015, lz, angle, height, (rnd() - 0.5) * 0.2, rank, rnd(), 1);
+        }
+        continue;
+      }
       const stub = wd > wg && wd > wf;
       // Taller tufts in broad patches, shorter growth along the maintained verge.
       const patch = 0.5 + 0.5 * Math.sin(x * 0.47 + Math.sin(z * 0.31)) * Math.sin(z * 0.39);
       const verge = 0.65 + 0.35 * smooth(0.7, 2.5, free);
       const hgt = stub ? 0.12 + r2 * 0.1 : wf > 0.5 ? 0.12 + r2 * 0.16 : (0.14 + r2 * r2 * 0.28 * patch) * verge;
-      out.push(x, opts.heightAt(x, z) - 0.04, z, r3 * Math.PI * 2, hgt, (r4 - 0.5) * 0.5, r5 * 0.999, rnd());
+      out.push(x, opts.heightAt(x, z) - 0.04, z, r3 * Math.PI * 2, hgt, (r4 - 0.5) * 0.5, r5 * 0.999, rnd(), 0);
     }
     return new Float32Array(out);
   };

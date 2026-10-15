@@ -260,9 +260,12 @@ vec3 tileTex(sampler2D t, vec2 p) {
           `vec3 sp = texture2D(uSplat, vSplatUv).rgb;
 float wStub = max(0.0, 1.0 - sp.r - sp.g - sp.b);
 vec3 grass = tileTex(uGrass, vWPos.xz);
+// Moss grows in patches rather than coating the whole woodland floor.
+float mossPatch = 0.0;
+if (sp.b > 0.01) mossPatch = smoothstep(0.38, 0.72, shNoise(vWPos.xz / 4.5) * 0.7 + shNoise(vWPos.xz / 1.3) * 0.3);
 vec3 col = grass * sp.r
   + tileTex(uSoil, vWPos.xz) * sp.g
-  + mix(tileTex(uForest, vWPos.xz), tileTex(uMoss, vWPos.xz * 0.7), 0.6) * 0.55 * sp.b
+  + mix(tileTex(uForest, vWPos.xz), tileTex(uMoss, vWPos.xz * 0.7), 0.08 + mossPatch * 0.55) * 0.55 * sp.b
   + grass * vec3(1.35, 1.15, 0.55) * wStub;
 col /= max(0.001, sp.r + sp.g + sp.b + wStub);
 vec3 farc = texture2D(uFar, vFarUv).rgb * 1.6;
