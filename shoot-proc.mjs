@@ -76,6 +76,7 @@ for (const d of D)
     const timing = motion ? "ride mode" : `frame ${ms.map((m) => m.toFixed(0)).join("/")} ms ≈ ${fps?.toFixed(2)} fps`;
     console.log(`${name}: ready ${(tReady / 1000).toFixed(1)} s, headless (${software ? "forced SwiftShader" : "browser default GL"}) ${timing}; draw calls ${info?.calls}, triangles ${info?.triangles}${info?.blades != null ? `, grass blades ${info.blades}` : ""}`, errors.length ? "ISSUES:\n  " + errors.join("\n  ") : "no console errors");
     console.log("GPU:", gpu);
+    if (info?.birches) console.log("Local birch instances:", JSON.stringify(info.birches));
     if (motion) console.log("Ride intervals (headless):", JSON.stringify(motion));
     if (errors.some((e) => !e.startsWith("warning"))) failures++;
     await page.close();

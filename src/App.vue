@@ -9,6 +9,7 @@
       :shadows="shadows"
       :quality="quality"
       :wind="wind"
+      :birch-preview="birchPreview"
       :eye-height-m="eyeH"
       :time-s="timeS"
       :test-mode="testMode"
@@ -87,6 +88,7 @@ const procScene = "scenes/" + (q.get("scene") ?? "muritz-3k") + "/";
 const shadows = ref(q.get("shadows") !== "0");
 const quality = parseQuality(q.get("q"));
 const wind = q.get("wind") !== "0";
+const birchPreview = import.meta.env.DEV && q.get("birch") === "1";
 const eyeH = Number(q.get("eye") ?? 1.6); // eye height [m], e.g. &eye=0.4 for a low view
 const timeS = Number(q.get("t") ?? 3);
 function setQuality(v: string) {

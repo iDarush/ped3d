@@ -42,6 +42,7 @@ export interface BuiltScene {
   stats: { triangles: number; treeInstances: number };
   /** blades currently in the grass field */
   grassStats: () => { blades: number; triangles: number };
+  birchStats: () => { lod0: number; lod1: number };
   dispose: () => void;
 }
 
@@ -72,7 +73,7 @@ function rng(seed: number) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 }
 
-export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer, opts: { quality: QualityPreset }): Promise<BuiltScene> {
+export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer, opts: { quality: QualityPreset; birchPreview?: boolean }): Promise<BuiltScene> {
   const [data, bin] = await Promise.all([
     fetch(base + "scene.json").then((r) => r.json() as Promise<SceneData>),
     fetch(base + "scene.bin").then((r) => r.arrayBuffer()),
@@ -602,6 +603,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
 
   // ---------------- trees ----------------
   let refillTrees: (cam: THREE.Vector3, fwd: THREE.Vector3, detailR: number, cardR: number, force?: boolean) => void = () => {};
+  let birchCounts = { lod0: 0, lod1: 0 };
   let splatWeights: (x: number, z: number) => number[] = () => [1, 0, 0, 0];
   let forestW: (x: number, z: number) => number = () => 0;
   // forest-fog culling hook (set once the fog exists): true if an object of radius r at camera offset (dx, dz) is fully fogged
@@ -836,12 +838,12 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     }
     type Slot = { mesh: THREE.InstancedMesh; n: number };
     const slots: { hiT: (Slot | null)[]; hiC: Slot[]; loT: (Slot | null)[]; loC: Slot[] } = { hiT: [], hiC: [], loT: [], loC: [] };
-    const mkInst = (geo: THREE.BufferGeometry | null, mat: THREE.Material, type: number, crown: boolean, hi: boolean): Slot | null => {
+    const mkInst = (geo: THREE.BufferGeometry | null, mat: THREE.Material, type: number, crown: boolean, hi: boolean, capacity = perType[type]): Slot | null => {
       if (!geo || !perType[type]) return null;
-      const im = new THREE.InstancedMesh(geo, mat, perType[type]);
+      const im = new THREE.InstancedMesh(geo, mat, capacity);
       im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       if (crown) {
-        im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(perType[type] * 3), 3);
+        im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 3), 3);
         im.instanceColor.setUsage(THREE.DynamicDrawUsage);
       }
       im.count = 0;
@@ -866,7 +868,32 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
       if (sl.mesh.instanceColor) (sl.mesh.instanceColor.array as Float32Array).set(tCol.subarray(i * 3, i * 3 + 3), sl.n * 3);
       sl.n++;
     };
-    const all = () => [...slots.hiT, ...slots.hiC, ...slots.loT, ...slots.loC].filter((x): x is Slot => !!x);
+    const birchSlots: { bark: Slot | null; leaves: Slot | null }[] = [];
+    if (import.meta.env.DEV && opts.birchPreview) {
+      try {
+        const { loadBirchPreview } = await import("./birchPreview");
+        const birch = await loadBirchPreview(renderer);
+        track(birch);
+        const bark = birch.lods[0].bark.material;
+        const leaves = noBackfaceFlip(birch.lods[0].leaves.material);
+        leaves.alphaToCoverage = opts.quality.antialias;
+        shade.patch(bark, 2); shade.patch(leaves, 3);
+        foliage.patch(bark, 2);
+        foliage.patch(leaves, 1, { c: V(0, 0.65, 0), r: V(0.3, 0.4, 0.3) });
+        const leafShadow = track(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: leaves.map, alphaTest: leaves.alphaTest, side: THREE.DoubleSide }));
+        foliage.patch(leafShadow, 1);
+        for (const [level, lod] of birch.lods.entries()) {
+          const capacity = level === 0 ? 8 : 16;
+          const b = mkInst(lod.bark.geometry, bark, 0, false, true, capacity);
+          const l = mkInst(lod.leaves.geometry, leaves, 0, true, true, capacity);
+          if (l) l.mesh.customDepthMaterial = leafShadow;
+          birchSlots.push({ bark: b, leaves: l });
+        }
+      } catch (error) {
+        console.warn("Local birch preview unavailable; retaining procedural trees", error);
+      }
+    }
+    const all = () => [...slots.hiT, ...slots.hiC, ...slots.loT, ...slots.loC, ...birchSlots.flatMap((s) => [s.bark, s.leaves])].filter((x): x is Slot => !!x);
     let last = { x: NaN, z: NaN, fx: 0, fz: 0, d: 0, c: 0 };
     refillTrees = (cam, fwd, detailR, cardR, force) => {
       const moved = Math.hypot(cam.x - last.x, cam.z - last.z);
@@ -882,6 +909,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
         cj0 = Math.floor(cam.z / CELL);
       const d2hi = detailR * detailR,
         d2lo = cardR * cardR;
+      const birchCandidates: { i: number; dd: number }[] = [];
       for (let a = -r; a <= r; a++)
         for (let b = -r; b <= r; b++) {
           const ids = cells.get(cellKey(ci0 + a, cj0 + b));
@@ -900,6 +928,10 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
               dd = dx * dx + dz * dz;
             if (dd > d2lo) continue;
             const t = tType[i];
+            if (birchSlots.length && t === 0 && dd < Math.min(detailR, 35) ** 2) {
+              birchCandidates.push({ i, dd });
+              continue;
+            }
             if (dd < d2hi) {
               put(slots.hiT[t], i);
               put(slots.hiC[t], i);
@@ -909,6 +941,26 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
             }
           }
         }
+      birchCandidates.sort((a, b) => a.dd - b.dd || a.i - b.i);
+      let detailed = 0, simple = 0;
+      for (const { i, dd } of birchCandidates) {
+        const level = dd < 20 ** 2 && detailed < 8 ? 0 : simple < 16 ? 1 : -1;
+        if (level < 0) { put(slots.hiT[0], i); put(slots.hiC[0], i); }
+        else {
+          put(birchSlots[level].bark, i); put(birchSlots[level].leaves, i);
+          // The source is a young slender birch. Avoid stretching it into a
+          // 20+ metre pole solely to match the old generic tree's height.
+          const scale = Math.min(1, 12 / Math.abs(tMat[i * 16 + 5]));
+          for (const slot of [birchSlots[level].bark, birchSlots[level].leaves]) {
+            if (!slot) continue;
+            const array = slot.mesh.instanceMatrix.array;
+            const offset = (slot.n - 1) * 16;
+            for (const k of [0, 1, 2, 4, 5, 6, 8, 9, 10]) array[offset + k] *= scale;
+          }
+          if (level === 0) detailed++; else simple++;
+        }
+      }
+      birchCounts = { lod0: detailed, lod1: simple };
       for (const sl of all()) {
         const m = sl.mesh;
         m.count = sl.n;
@@ -1015,6 +1067,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     foliage,
     stats: { triangles: Math.round(triangles), treeInstances: treesArr.length / 6 },
     grassStats: () => grass.stats(),
+    birchStats: () => birchCounts,
     dispose: () => disposables.forEach((d) => d.dispose()),
   };
 }
