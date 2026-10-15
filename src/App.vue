@@ -88,7 +88,7 @@ const procScene = "scenes/" + (q.get("scene") ?? "muritz-3k") + "/";
 const shadows = ref(q.get("shadows") !== "0");
 const quality = parseQuality(q.get("q"));
 const wind = q.get("wind") !== "0";
-const birchPreview = import.meta.env.DEV && q.get("birch") === "1";
+const birchPreview = q.get("birch") === "1";
 const eyeH = Number(q.get("eye") ?? 1.6); // eye height [m], e.g. &eye=0.4 for a low view
 const timeS = Number(q.get("t") ?? 3);
 function setQuality(v: string) {
@@ -137,8 +137,9 @@ const segTo = computed(() => (proc.value && procSeg.value ? procSeg.value.to : l
 const shownDistance = ref(0),
   grade = ref(0),
   elev = ref(0);
-function onFrame(f: { distanceM: number; gradePct: number; groundM: number; fps?: number; calls?: number; triangles?: number }) {
+function onFrame(f: { distanceM: number; gradePct: number; groundM: number; fps?: number; calls?: number; triangles?: number; birches?: { lod0: number; lod1: number } }) {
   if (f.fps != null) fpsText.value = `${f.fps.toFixed(0)} fps · ${f.calls} draw calls · ${((f.triangles ?? 0) / 1000).toFixed(0)}k tris · q=${quality}`;
+  if (birchPreview && f.birches) fpsText.value += ` · birch ${f.birches.lod0}+${f.birches.lod1}`;
   shownDistance.value = live ? liveDistance.value : f.distanceM;
   grade.value = Number.isFinite(f.gradePct) ? f.gradePct : 0;
   elev.value = f.groundM;

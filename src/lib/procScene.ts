@@ -869,7 +869,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
       sl.n++;
     };
     const birchSlots: { bark: Slot | null; leaves: Slot | null }[] = [];
-    if (import.meta.env.DEV && opts.birchPreview) {
+    if (opts.birchPreview) {
       try {
         const { loadBirchPreview } = await import("./birchPreview");
         const birch = await loadBirchPreview(renderer);

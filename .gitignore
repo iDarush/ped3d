@@ -6,3 +6,5 @@ shots/
 .env
 .env.*
 !.env.example
+public/scene-assets/birch/
+public/basis/

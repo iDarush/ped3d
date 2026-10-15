@@ -4,7 +4,9 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const cwd = fileURLToPath(new URL("../", import.meta.url));
-const server = spawn(process.execPath, ["node_modules/vite/bin/vite.js", process.env.SCENE_ROOT ?? ".", "--host", "127.0.0.1", "--port", "5193", "--strictPort"], { cwd, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
+const port = process.env.CHECK_PORT ?? "5193";
+const mode = process.env.CHECK_MODE === "preview" ? ["preview"] : [];
+const server = spawn(process.execPath, ["node_modules/vite/bin/vite.js", ...mode, process.env.SCENE_ROOT ?? ".", "--host", "127.0.0.1", "--port", port, "--strictPort"], { cwd, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
 try {
   await new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("Vite startup timed out")), 30000);
@@ -15,7 +17,7 @@ try {
     server.on("error", (e) => { clearTimeout(timer); reject(e); });
     server.on("exit", (code) => { clearTimeout(timer); reject(new Error(`Vite exited: ${code}`)); });
   });
-  const check = spawn(process.execPath, ["shoot-proc.mjs"], { cwd, windowsHide: true, stdio: "inherit", env: { ...process.env, BASE: "http://127.0.0.1:5193/" } });
+  const check = spawn(process.execPath, ["shoot-proc.mjs"], { cwd, windowsHide: true, stdio: "inherit", env: { ...process.env, BASE: `http://127.0.0.1:${port}/` } });
   process.exitCode = await new Promise((resolve, reject) => {
     check.on("error", reject);
     check.on("exit", (code) => resolve(code ?? 1));

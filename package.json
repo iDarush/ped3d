@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node tools/prepare-local-models.mjs",
     "dev": "vite",
+    "prebuild": "node tools/prepare-local-models.mjs",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview --port 4173",
     "scene:assets": "python3 tools/prepare-assets.py",

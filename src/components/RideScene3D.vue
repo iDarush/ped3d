@@ -34,7 +34,7 @@ const props = withDefaults(
     testMode?: boolean;
     /** foliage wind animation */
     wind?: boolean;
-    /** opt-in local asset evaluation, disabled in production */
+    /** opt-in prepared birch models for the local personal project */
     birchPreview?: boolean;
     /** test mode: fixed animation time [s] (for reproducible frames / wind sequences) */
     timeS?: number;
@@ -43,7 +43,7 @@ const props = withDefaults(
 );
 const emit = defineEmits<{
   ready: [info: { from: number; to: number; triangles: number; trees: number }];
-  frame: [info: { distanceM: number; bearing: number; groundM: number; gradePct: number; fps: number; calls: number; triangles: number; forest: number }];
+  frame: [info: { distanceM: number; bearing: number; groundM: number; gradePct: number; fps: number; calls: number; triangles: number; forest: number; birches: { lod0: number; lod1: number } }];
 }>();
 
 const container = ref<HTMLDivElement | null>(null);
@@ -187,7 +187,7 @@ function frame(now: number) {
     fpsT0 = now;
     (window as unknown as { __rideFps: number }).__rideFps = fps;
   }
-  emit("frame", { distanceM: d, bearing, groundM: ground, gradePct: trackGrade(track, d), fps, calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, forest: f });
+  emit("frame", { distanceM: d, bearing, groundM: ground, gradePct: trackGrade(track, d), fps, calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, forest: f, birches: built.birchStats() });
 }
 
 onMounted(async () => {

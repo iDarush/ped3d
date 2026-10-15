@@ -7,9 +7,10 @@ export interface BirchPreview {
   dispose: () => void;
 }
 
-/** Local-only evaluation. No model files or license clearance are supplied by this module. */
+/** Local personal-project assets, staged by tools/prepare-local-models.mjs. */
 export async function loadBirchPreview(renderer: THREE.WebGLRenderer): Promise<BirchPreview> {
-  const ktx = new KTX2Loader().setTranscoderPath("/node_modules/three/examples/jsm/libs/basis/").detectSupport(renderer);
+  const base = import.meta.env.BASE_URL;
+  const ktx = new KTX2Loader().setTranscoderPath(base + "basis/").detectSupport(renderer);
   const loader = new GLTFLoader().setKTX2Loader(ktx);
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
@@ -22,7 +23,7 @@ export async function loadBirchPreview(renderer: THREE.WebGLRenderer): Promise<B
   try {
     const lods: BirchPreview["lods"] = [];
     for (const level of [0, 1]) {
-      const gltf = await loader.loadAsync(`/models/birch/ktx2/birch_lod${level}.glb`);
+      const gltf = await loader.loadAsync(`${base}scene-assets/birch/birch_lod${level}.glb`);
       gltf.scene.updateMatrixWorld(true);
       const height = new THREE.Box3().setFromObject(gltf.scene).getSize(new THREE.Vector3()).y;
       if (!(height > 0)) throw new Error("Birch has invalid height");
