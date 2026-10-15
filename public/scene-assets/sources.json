@@ -1,0 +1,46 @@
+{
+ "ambientcg": {
+  "grass": "Grass001",
+  "soil": "Ground048",
+  "moss": "Ground037",
+  "leaves": "LeafSet009"
+ },
+ "texturecan": {
+  "forestfloor": {
+   "page": "https://www.texturecan.com/details/92/",
+   "zip_1k": "https://www.texturecan.com/downloads/ground_0006/ground_0006_1k_hjA45q.zip",
+   "license": "CC0 1.0 (https://www.texturecan.com/terms/)"
+  },
+  "bark": {
+   "page": "https://www.texturecan.com/details/214/",
+   "zip_1k": "https://www.texturecan.com/downloads/wood_0025/wood_0025_1k_G5FctJ.zip",
+   "license": "CC0 1.0 (https://www.texturecan.com/terms/)"
+  },
+  "gravel": {
+   "page": "https://www.texturecan.com/details/194/",
+   "zip_1k": "https://www.texturecan.com/downloads/ground_0020/ground_0020_1k_2TJfMA.zip",
+   "license": "CC0 1.0 (https://www.texturecan.com/terms/)"
+  },
+  "asphalt": {
+   "page": "https://www.texturecan.com/details/5/",
+   "zip_1k": "https://www.texturecan.com/downloads/asphalt_0001/asphalt_0001_1k_j2F32G.zip",
+   "license": "CC0 1.0 (https://www.texturecan.com/terms/)"
+  },
+  "roof": {
+   "page": "https://www.texturecan.com/details/556/",
+   "zip_1k": "https://www.texturecan.com/downloads/rooftop_0008/rooftop_0008_1k_4MiOBV.zip",
+   "license": "CC0 1.0 (https://www.texturecan.com/terms/)"
+  },
+  "brick": {
+   "page": "https://www.texturecan.com/details/81/",
+   "zip_1k": "https://www.texturecan.com/downloads/bricks_0008/bricks_0008_1k_Ct5zUm.zip",
+   "license": "CC0 1.0 (https://www.texturecan.com/terms/)"
+  },
+  "plaster": {
+   "page": "https://www.texturecan.com/details/199/",
+   "zip_1k": "https://www.texturecan.com/downloads/concrete_0012/concrete_0012_1k_Yc2uXg.zip",
+   "license": "CC0 1.0 (https://www.texturecan.com/terms/)"
+  }
+ },
+ "polyhaven_hdri": "kloofendal_48d_partly_cloudy_puresky"
+}
