@@ -6,6 +6,7 @@ import { bakeCanopyShade } from "./canopyShade";
 import { createFoliage, type Foliage } from "./foliage";
 import { createGrassField } from "./grassField";
 import type { QualityPreset } from "./quality";
+import { patchRoadSurface } from "./roadSurface";
 
 export interface SceneData {
   name: string;
@@ -331,9 +332,11 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
   // ---------------- roads ----------------
   const trackArr = typed(bin, data.layout.track) as Float32Array;
   {
-    const groups: Record<number, { pos: number[]; uv: number[] }> = {};
-    const shoulder = { pos: [] as number[], uv: [] as number[] };
-    const ribbon = (pts: { x: number; z: number; w: number; y?: number }[], out: { pos: number[]; uv: number[] }, lift: number, extra = 0) => {
+    type Ribbon = { pos: number[]; uv: number[]; profile: number[] };
+    const emptyRibbon = (): Ribbon => ({ pos: [], uv: [], profile: [] });
+    const groups: Record<number, Ribbon> = {};
+    const shoulder = emptyRibbon();
+    const ribbon = (pts: { x: number; z: number; w: number; y?: number }[], out: Ribbon, lift: number, extra = 0) => {
       let s = 0;
       for (let k = 0; k < pts.length - 1; k++) {
         const quad: number[][] = [];
@@ -345,13 +348,15 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
           const L = Math.hypot(tx, tz) || 1;
           tx /= L;
           tz /= L;
-          const hw = pts[kk].w / 2 + extra,
-            p = pts[kk];
+          const p = pts[kk];
+          // World-anchored variation agrees at shared segment endpoints.
+          const vergeWidth = extra ? extra * (1 + 0.22 * Math.sin(p.x * 0.37 + p.z * 0.23) + 0.13 * Math.sin(p.z * 1.1)) : 0;
+          const hw = p.w / 2 + vergeWidth;
           for (const side of [-1, 1]) {
             const x = p.x - tz * hw * side,
               z = p.z + tx * hw * side;
             const y = (p.y ?? heightAt(x, z)) + lift;
-            quad.push([x, y, z, side * hw]);
+            quad.push([x, y, z, side * hw, hw]);
           }
         }
         const seg = Math.hypot(pts[k + 1].x - pts[k].x, pts[k + 1].z - pts[k].z);
@@ -369,12 +374,13 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
         ] as [number[], number][]) {
           out.pos.push(q[0], q[1], q[2]);
           out.uv.push(q[3] / 4, v);
+          out.profile.push(q[3], q[4]);
         }
       }
     };
     for (const r of data.roads) {
       const pts = r.p.map(([x, z]) => ({ x, z, w: r.w }));
-      ribbon(pts, (groups[r.s] ??= { pos: [], uv: [] }), 0.08);
+      ribbon(pts, (groups[r.s] ??= emptyRibbon()), 0.08);
       ribbon(pts, shoulder, 0.05, 0.35);
     }
     // the ridden road: from the track samples, flat across, split where the surface changes
@@ -382,7 +388,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     let runS = -1;
     const flush = () => {
       if (run.length > 1) {
-        ribbon(run, (groups[runS] ??= { pos: [], uv: [] }), 0.1);
+        ribbon(run, (groups[runS] ??= emptyRibbon()), 0.1);
         ribbon(run, shoulder, 0.06, 0.4);
       }
     };
@@ -398,24 +404,26 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     }
     flush();
     const mats: Record<number, THREE.Material> = {
-      0: new THREE.MeshStandardMaterial({ map: T.asphalt, ...pbr("asphalt", 0.7), color: 0xd0d0d0, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }),
+      0: new THREE.MeshStandardMaterial({ map: T.asphalt, ...pbr("asphalt", 0.28), color: 0xd0d0d0, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }),
       1: new THREE.MeshStandardMaterial({ map: T.gravel, ...pbr("gravel"), color: 0xd8c8a8, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }),
       2: new THREE.MeshStandardMaterial({ map: T.gravel, ...pbr("gravel"), color: 0xa8a29a, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }),
     };
-    const add = (g: { pos: number[]; uv: number[] }, m: THREE.Material, name: string) => {
+    const add = (g: Ribbon, m: THREE.MeshStandardMaterial, name: string, verge = false) => {
       const geo = track(new THREE.BufferGeometry());
       geo.setAttribute("position", new THREE.Float32BufferAttribute(g.pos, 3));
       geo.setAttribute("uv", new THREE.Float32BufferAttribute(g.uv, 2));
+      geo.setAttribute("roadProfile", new THREE.Float32BufferAttribute(g.profile, 2));
       geo.computeVertexNormals();
       triangles += g.pos.length / 9;
+      patchRoadSurface(m, T.gravel, verge);
       shade.patch(m, 1); // canopy shade on roads through the forest
       const mesh = new THREE.Mesh(geo, track(m));
       mesh.receiveShadow = true;
       mesh.name = name;
       root.add(mesh);
     };
-    for (const [s, g] of Object.entries(groups)) add(g, mats[Number(s)], "road-" + s);
-    add(shoulder, new THREE.MeshStandardMaterial({ map: T.gravel, ...pbr("gravel"), color: 0x8a877c, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), "road-shoulder");
+    for (const [s, g] of Object.entries(groups)) add(g, mats[Number(s)] as THREE.MeshStandardMaterial, "road-" + s);
+    add(shoulder, new THREE.MeshStandardMaterial({ map: T.gravel, ...pbr("gravel"), color: 0x8a877c, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), "road-shoulder", true);
   }
 
   // ---------------- buildings ----------------

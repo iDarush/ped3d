@@ -169,3 +169,32 @@ No ready-made 3D models are used. Quaternius and Kenney packs are CC0 but stylis
    - ESA WorldCover / canopy height (Meta/WRI, 1 m) for tree heights and density.
    - National orthophotos instead of EOX for the far ring.
    - Mapillary/Panoramax for per-place styling (e.g. brick vs plaster).
+
+## Road surface pass (2026-10-15)
+
+Road ribbons now carry a two-component road profile (signed lateral distance and
+half-width). `src/lib/roadSurface.ts` uses it for broken dusty margins, subtle paired
+wear bands on wider roads, and world-anchored surface variation. Shoulder width
+varies continuously in world space and its outer edge gets an earthy tint. Asphalt
+normal strength is reduced from 0.7 to 0.28 to avoid an exaggerated gravel-like relief.
+
+This pass adds no meshes, draw calls, triangles, or new texture files. Road fragments
+add one lookup of the already loaded gravel texture and two procedural noise calls;
+shoulders only add procedural noise. The sampler returns linear colour from the sRGB
+texture. Existing canopy shading and forest fog still wrap the material hooks.
+
+Chrome checks at 1280x720, low: 3700 m = 99 calls / 430,069 triangles;
+4530 m = 59 calls / 64,736 triangles. These match the previous geometry counts.
+This is not a measured GPU-time or real-time FPS improvement. Close-up conifer cards
+remain the next major asset limitation.
+
+`shoot-proc.mjs` now detects Chrome/Edge on Windows and Chrome/Chromium on Linux,
+accepts `CHROME_PATH`, writes to `shots/` (override with `SHOTS_DIR`), and uses the
+browser's default GL backend. Set `SOFTWARE_GL=1` to force SwiftShader. Headless
+readback timings are diagnostic, not a substitute for riding on the laptop.
+
+Final med screenshots: village 3000 m, open field 3700 m, forest 4530 m.
+No render errors; the village produced a shader precision warning from ANGLE.
+Headless synchronized frame samples after warm-up were approximately 19, 89,
+and 40 ms respectively. These are three static frames per location, not a
+sustained ride benchmark; med still needs performance work in open fields.
