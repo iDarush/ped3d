@@ -4,7 +4,7 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const cwd = fileURLToPath(new URL("../", import.meta.url));
-const server = spawn(process.execPath, ["node_modules/vite/bin/vite.js", "--host", "127.0.0.1", "--port", "5193", "--strictPort"], { cwd, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
+const server = spawn(process.execPath, ["node_modules/vite/bin/vite.js", process.env.SCENE_ROOT ?? ".", "--host", "127.0.0.1", "--port", "5193", "--strictPort"], { cwd, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
 try {
   await new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("Vite startup timed out")), 30000);

@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 /**
  * Dense grass blade field around the camera (ideas after blade-mesh grass shaders, reimplemented):
- *  - ONE draw call: an InstancedBufferGeometry of a 5-triangle opaque blade (no alpha test, no transparency)
+ *  - ONE draw call: an InstancedBufferGeometry of a 3/5-triangle opaque blade (no alpha test, no transparency)
  *  - blades are generated once per 8 m tile (cached) from the land cover: dense on grass/meadow, a little stubble
  *    on stubble fields, sparse in forest, none on ploughed fields or the ridden road
  *  - every couple of metres the visible blades (forward-biased disc around the camera, density falling off with
@@ -30,6 +30,7 @@ const STRIDE = 8; // x, y, z, rot | height, lean, rank, var
 export function createGrassField(opts: {
   radius: number; // full patch radius (blades fade out towards it)
   density: number; // blades per m² at full density
+  segments: 2 | 3;
   heightAt: (x: number, z: number) => number;
   weights: (x: number, z: number) => number[]; // land cover [grass, soil, forest, stubble]
   roadFree: (x: number, z: number) => number; // metres from the ridden road edge
@@ -44,20 +45,27 @@ export function createGrassField(opts: {
     R0 = R * 0.15;
   // density: full within R0, then ~ (R0/d)^1.3 (blades get wider to keep the coverage), zero at R
   const densAt = (d: number) => Math.min(1, Math.pow(R0 / Math.max(d, R0), 1.3)) * (1 - smooth(R * 0.75, R, d));
-  // blade: 3 segments, tapering; 5 triangles, 7 vertices; unit height, base width 1 (scaled in the shader)
-  const ys = [0, 0.45, 0.8, 1];
-  const ws = [0.5, 0.42, 0.25, 0];
+  // Low/med retain a bent silhouette with 3 triangles instead of 5.
+  const segments = opts.segments;
+  const trianglesPerBlade = segments * 2 - 1;
+  const ys = segments === 2 ? [0, 0.58, 1] : [0, 0.45, 0.8, 1];
+  const ws = segments === 2 ? [0.5, 0.33, 0] : [0.5, 0.42, 0.25, 0];
   const pos: number[] = [];
-  for (let k = 0; k < 3; k++) pos.push(-ws[k], ys[k], 0, ws[k], ys[k], 0);
+  for (let k = 0; k < segments; k++) pos.push(-ws[k], ys[k], 0, ws[k], ys[k], 0);
   pos.push(0, 1, 0);
-  const idx = [0, 1, 2, 2, 1, 3, 2, 3, 4, 4, 3, 5, 4, 5, 6];
+  const idx: number[] = [];
+  for (let k = 0; k < segments - 1; k++) {
+    const a = k * 2;
+    idx.push(a, a + 1, a + 2, a + 2, a + 1, a + 3);
+  }
+  idx.push(segments * 2 - 2, segments * 2 - 1, segments * 2);
   const geo = new THREE.InstancedBufferGeometry();
   geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-  geo.setAttribute("normal", new THREE.Float32BufferAttribute(new Array(7).fill([0, 0, 1]).flat(), 3));
+  geo.setAttribute("normal", new THREE.Float32BufferAttribute(new Array(segments * 2 + 1).fill([0, 0, 1]).flat(), 3));
   geo.setIndex(idx);
   let area = 0; // expected area-equivalent of the patch (full disc, upper bound)
   for (let d = 0.25; d < R; d += 0.5) area += densAt(d) * 2 * Math.PI * d * 0.5;
-  const maxBlades = Math.ceil(area * opts.density * 1.6); // + the 4 m refill margin; buffer only, not drawn
+  const maxBlades = Math.ceil(area * opts.density * 1.6); // refill margin; buffer only, not drawn
   const data = new Float32Array(maxBlades * STRIDE);
   const ib = new THREE.InstancedInterleavedBuffer(data, STRIDE);
   ib.setUsage(THREE.DynamicDrawUsage);
@@ -69,7 +77,11 @@ export function createGrassField(opts: {
   const NS = 64,
     nz = new Uint8Array(NS * NS),
     g = 8,
-    lat = Array.from({ length: g * g }, () => Math.random());
+    // Fixed gust field: screenshot comparisons and tile revisits remain reproducible.
+    lat = Array.from({ length: g * g }, (_, i) => {
+      const v = Math.sin(i * 127.1 + 311.7) * 43758.5453;
+      return v - Math.floor(v);
+    });
   for (let j = 0; j < NS; j++)
     for (let i = 0; i < NS; i++) {
       const fx = (i / NS) * g,
@@ -125,7 +137,7 @@ float d = length(root.xz - uCam.xz);
 float dens = min(1.0, pow(uR.x / max(d, uR.x), 1.3)) * (1.0 - smoothstep(uR.y * 0.75, uR.y, d));
 float grow = smoothstep(aBladeB.z, aBladeB.z + 0.12, dens) * (1.0 - smoothstep(uR.y * 0.8, uR.y, d));
 float h = aBladeB.x * grow;
-float wdt = 0.03 * (0.7 + 0.6 * aBladeB.w) * clamp(inversesqrt(max(dens, 0.05)), 1.0, 2.5); // wider where sparser
+float wdt = 0.022 * (0.7 + 0.6 * aBladeB.w) * clamp(inversesqrt(max(dens, 0.05)), 1.0, 1.4); // avoid broad distant ribbons
 vec2 wdir = normalize(vec2(0.8, 0.6));
 float gst = textureLod(uWindNoise, (root.xz - wdir * uTime * 3.0) / 34.0, 0.0).r;
 vGust = gst * uWind;
@@ -150,10 +162,10 @@ vBladeCol = col * mix(0.45, 1.25, position.y) * mix(vec3(1.0), vec3(1.08, 1.06, 
       "varying vec3 vBladeCol; varying float vGust;\n" +
       sh.fragmentShader
         .replace("#include <map_fragment>", "diffuseColor.rgb = vBladeCol;")
-        .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(0.9, 0.5, vGust);")
+        .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(0.95, 0.8, vGust);")
         .replace("#include <normal_fragment_begin>", THREE.ShaderChunk.normal_fragment_begin.replace("float faceDirection = gl_FrontFacing ? 1.0 : - 1.0;", "float faceDirection = 1.0;"));
   };
-  mat.customProgramCacheKey = () => "grass-blades-v1";
+  mat.customProgramCacheKey = () => "grass-blades-v2";
   const mesh = new THREE.Mesh(geo, mat);
   mesh.frustumCulled = false;
   mesh.receiveShadow = opts.receiveShadow;
@@ -184,7 +196,10 @@ vBladeCol = col * mix(0.45, 1.25, position.y) * mix(vec3(1.0), vec3(1.08, 1.06, 
         r5 = rnd();
       if (r1 > p) continue;
       const stub = wd > wg && wd > wf;
-      const hgt = stub ? 0.12 + r2 * 0.1 : wf > 0.5 ? 0.15 + r2 * 0.2 : 0.22 + r2 * r2 * 0.4;
+      // Taller tufts in broad patches, shorter growth along the maintained verge.
+      const patch = 0.5 + 0.5 * Math.sin(x * 0.47 + Math.sin(z * 0.31)) * Math.sin(z * 0.39);
+      const verge = 0.65 + 0.35 * smooth(0.7, 2.5, free);
+      const hgt = stub ? 0.12 + r2 * 0.1 : wf > 0.5 ? 0.12 + r2 * 0.16 : (0.14 + r2 * r2 * 0.28 * patch) * verge;
       out.push(x, opts.heightAt(x, z) - 0.04, z, r3 * Math.PI * 2, hgt, (r4 - 0.5) * 0.5, r5 * 0.999, rnd());
     }
     return new Float32Array(out);
@@ -227,10 +242,13 @@ vBladeCol = col * mix(0.45, 1.25, position.y) * mix(vec3(1.0), vec3(1.08, 1.06, 
             dz = t[o + 2] - cam.z,
             d = Math.hypot(dx, dz);
           if (d > R) continue;
-          // keep a margin of 4 m of travel: the shader fades blades whose rank is above the local density
-          if (t[o + 6] > densAt(Math.max(0, d - 4)) + 0.02) continue;
+          // Refill every 2 m. A 2.5 m margin covers movement without processing
+          // as many fully shrunken blades as the old 4 m margin.
+          if (t[o + 6] > densAt(Math.max(0, d - 2.5)) + 0.02) continue;
           if (count >= maxBlades) break;
-          data.set(t.subarray(o, o + STRIDE), count * STRIDE);
+          // Avoid one temporary TypedArray view per blade on every refill.
+          const dst = count * STRIDE;
+          for (let c = 0; c < STRIDE; c++) data[dst + c] = t[o + c];
           count++;
         }
       }
@@ -242,7 +260,7 @@ vBladeCol = col * mix(0.45, 1.25, position.y) * mix(vec3(1.0), vec3(1.08, 1.06, 
   return {
     mesh,
     update,
-    stats: () => ({ blades: count, triangles: count * 5 }),
+    stats: () => ({ blades: count, triangles: count * trianglesPerBlade }),
     dispose: () => {
       geo.dispose();
       mat.dispose();

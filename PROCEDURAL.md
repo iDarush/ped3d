@@ -198,3 +198,27 @@ No render errors; the village produced a shader precision warning from ANGLE.
 Headless synchronized frame samples after warm-up were approximately 19, 89,
 and 40 ms respectively. These are three static frames per location, not a
 sustained ride benchmark; med still needs performance work in open fields.
+
+## Near vegetation pass (2026-10-15)
+
+Near spruce crowns use staggered short needle-clump sprays with different tilts,
+replacing the long planar branch cards. Broadleaf and pine trunks get tapered
+structural limbs in the same instanced mesh. Spruce shadow masks match the new
+clump texture; far tree LODs are unchanged. Forest med at 4530 m rose from
+102,684 to 122,008 triangles before the grass pass, with the same 66 calls.
+
+Grass now uses three triangles per blade on low/med and five on high. Low uses
+22 m / 28 blades per square metre; med uses 32 m / 32; high keeps 60 m / 55.
+Low/med grass uses baked canopy/contact shade without dynamic shadow-map reads.
+Blades are thinner, shorter, less glossy, with height patches and shorter verges.
+The refill travel margin is 2.5 m (refill every 2 m), and instance copies avoid
+allocating a temporary typed-array view for each blade. Wind noise is seeded.
+
+Run `node tools/check-scene.mjs` to start an isolated local Vite server and make
+screenshots with the normal `DS`, `CAMS`, `EXTRA`, `SUFFIX` variables. It accepts
+`SCENE_ROOT` to render an archived source tree for comparison. For movement checks,
+set `MOTION_SECONDS=8` and `EXTRA=&q=med&speed=25`. The runner holds position during
+loading and a two-second warm-up, then starts riding; it reports mean FPS,
+median/p95 animation-frame intervals and the WebGL renderer. These are short
+headless checks on Intel Iris Xe / ANGLE D3D11, not a guarantee of sustained FPS.
+Detailed results and current quality values are maintained in `HANDOFF.md`.

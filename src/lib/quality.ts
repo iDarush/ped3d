@@ -17,6 +17,10 @@ export interface QualityPreset {
   grassR: number;
   /** grass blades per m² at full density */
   grassDensity: number;
+  /** two segments = 3 triangles/blade, three segments = 5 */
+  grassSegments: 2 | 3;
+  /** grass uses baked canopy/contact shade when false */
+  grassShadows: boolean;
   /** fewer crown cards per detailed tree */
   liteTrees: boolean;
   /** forest fog: fully opaque at this distance, m */
@@ -27,9 +31,9 @@ export interface QualityPreset {
 }
 
 export const QUALITY: Record<Quality, QualityPreset> = {
-  low: { pixelRatio: 1, shadows: false, shadowMap: 1024, shadowHalf: 40, detailR: 45, cardR: 900, grassR: 25, grassDensity: 35, liteTrees: true, forestFogFar: 110, antialias: false, groundNormals: false },
-  med: { pixelRatio: 1.25, shadows: true, shadowMap: 1024, shadowHalf: 45, detailR: 70, cardR: 1600, grassR: 40, grassDensity: 40, liteTrees: true, forestFogFar: 140, antialias: true, groundNormals: true },
-  high: { pixelRatio: 2, shadows: true, shadowMap: 2048, shadowHalf: 90, detailR: 120, cardR: 2600, grassR: 60, grassDensity: 55, liteTrees: false, forestFogFar: 190, antialias: true, groundNormals: true },
+  low: { pixelRatio: 1, shadows: false, shadowMap: 1024, shadowHalf: 40, detailR: 45, cardR: 900, grassR: 22, grassDensity: 28, grassSegments: 2, grassShadows: false, liteTrees: true, forestFogFar: 110, antialias: false, groundNormals: false },
+  med: { pixelRatio: 1.25, shadows: true, shadowMap: 1024, shadowHalf: 45, detailR: 70, cardR: 1600, grassR: 32, grassDensity: 32, grassSegments: 2, grassShadows: false, liteTrees: true, forestFogFar: 140, antialias: true, groundNormals: true },
+  high: { pixelRatio: 2, shadows: true, shadowMap: 2048, shadowHalf: 90, detailR: 120, cardR: 2600, grassR: 60, grassDensity: 55, grassSegments: 3, grassShadows: true, liteTrees: false, forestFogFar: 190, antialias: true, groundNormals: true },
 };
 
 export function parseQuality(v: string | null | undefined): Quality {

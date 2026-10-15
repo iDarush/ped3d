@@ -945,6 +945,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
   const grass = createGrassField({
     radius: qp.grassR,
     density: qp.grassDensity,
+    segments: qp.grassSegments,
     heightAt,
     weights: splatWeights,
     roadFree,
@@ -953,7 +954,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     farRect: { x0: far.x0, z0: far.z0, w: (far.nx - 1) * far.step, h: (far.nz - 1) * far.step },
     shadeUniforms: shade.uniforms,
     windUniforms: foliage.uniforms,
-    receiveShadow: qp.shadows,
+    receiveShadow: qp.shadows && qp.grassShadows,
   });
   disposables.push(grass);
   forestFog.patch(grass.mesh.material as THREE.Material);
