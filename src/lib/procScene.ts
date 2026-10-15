@@ -650,6 +650,20 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
       }
     };
     const randDir = () => new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize();
+    // Tapered structural limbs share the trunk mesh; no extra draw calls.
+    const limb = (g: Geo, from: THREE.Vector3, to: THREE.Vector3, radius: number) => {
+      const tmp = G();
+      const axis = to.clone().sub(from);
+      trunk(tmp, 0, axis.length(), radius, radius * 0.25, 3);
+      const rot = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis.normalize());
+      for (let i = 0; i < tmp.pos.length; i += 3) {
+        const p = new THREE.Vector3(...tmp.pos.slice(i, i + 3) as [number, number, number]).applyQuaternion(rot).add(from);
+        const n = new THREE.Vector3(...tmp.nrm.slice(i, i + 3) as [number, number, number]).applyQuaternion(rot);
+        g.pos.push(p.x, p.y, p.z);
+        g.nrm.push(n.x, n.y, n.z);
+      }
+      g.uv.push(...tmp.uv);
+    };
     const crownCards = (g: Geo, cc: THREE.Vector3, rx: number, ry: number, n: number, size: number) => {
       for (let k = 0; k < n; k++) {
         const d = randDir();
@@ -673,6 +687,11 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
       loTrunk = [G(), G(), G(), null];
     trunk(hiTrunk[0]!, 0, 0.62, 0.016, 0.008);
     const lite = opts.quality.liteTrees;
+    for (let k = 0; k < 4; k++) {
+      const a = k * 2.4;
+      limb(hiTrunk[0]!, new THREE.Vector3(0, 0.38 + k * 0.045, 0),
+        new THREE.Vector3(Math.cos(a) * 0.18, 0.65 + (k % 2) * 0.12, Math.sin(a) * 0.18), 0.006);
+    }
     crownCards(hiCrown[0], new THREE.Vector3(0, 0.64, 0), 0.32, 0.36, lite ? 11 : 18, lite ? 0.24 : 0.2);
     crossCards(loCrown[0], new THREE.Vector3(0, 0.64, 0), 0.34, 0.36, 3);
     trunk(loTrunk[0]!, 0, 0.5, 0.016, 0.01, 3);
@@ -681,22 +700,33 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     // Scots pine: a few twisted limbs and an irregular, flat-topped crown of needle clumps
     for (let k = 0; k < (lite ? 3 : 4); k++) {
       const cx = (R() - 0.5) * 0.16, cz = (R() - 0.5) * 0.16;
+      limb(hiTrunk[1]!, new THREE.Vector3(0, 0.72, 0), new THREE.Vector3(cx, 0.86, cz), 0.004);
       crownCards(hiCrown[1], new THREE.Vector3(cx, 0.8 + R() * 0.1, cz), 0.16, 0.09, lite ? 4 : 6, lite ? 0.12 : 0.1);
     }
     trunk(loTrunk[1]!, 0, 0.9, 0.011, 0.006, 3);
     crossCards(loCrown[1], new THREE.Vector3(0, 0.84, 0), 0.2, 0.12, 3);
     card(loCrown[1], new THREE.Vector3(0, 0.86, 0), new THREE.Vector3(0.2, 0, 0), new THREE.Vector3(0, 0, 0.2), new THREE.Vector3(0, 0.8, 0));
-    // spruce: whorls of drooping branch cards forming a cone
+    // Spruce: short, staggered needle sprays rather than metre-long flat branch cards.
+    // Two differently tilted sprays per branch preserve volume when viewed from below.
     trunk(hiTrunk[2]!, 0, 1.0, 0.012, 0.003);
-    const whorls = lite ? 8 : 12;
+    const whorls = lite ? 6 : 9;
     for (let w = 0; w < whorls; w++) {
-      const y = 0.18 + (w / whorls) * 0.8,
-        len = 0.2 * (1 - (y - 0.18) / 0.85) + 0.03;
+      const y = 0.22 + (w / whorls) * 0.73,
+        len = 0.20 * (1 - (y - 0.22) / 0.82) + 0.02;
       for (let k = 0; k < (lite ? 4 : 5); k++) {
-        const a = (k / (lite ? 4 : 5)) * Math.PI * 2 + w * 0.7;
-        const dir = new THREE.Vector3(Math.cos(a), -0.35, Math.sin(a)).normalize();
-        const side = new THREE.Vector3(-Math.sin(a), 0, Math.cos(a)).multiplyScalar(len * 0.7);
-        card(hiCrown[2], new THREE.Vector3(0, y, 0).add(dir.clone().multiplyScalar(len)), dir.clone().multiplyScalar(len), side, new THREE.Vector3(0, y + 0.05, 0));
+        const a = (k / (lite ? 4 : 5)) * Math.PI * 2 + w * 2.4;
+        const radial = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
+        const tangent = new THREE.Vector3(-Math.sin(a), 0, Math.cos(a));
+        for (let j = 0; j < 2; j++) {
+          const reach = len * (0.43 + j * 0.48);
+          const centre = radial.clone().multiplyScalar(reach);
+          centre.y = y - reach * 0.25 + (R() - 0.5) * 0.025;
+          const size = len * (j ? 0.40 : 0.52);
+          const u = tangent.clone().multiplyScalar(size);
+          const v = radial.clone().multiplyScalar(size * 0.45);
+          v.y = size * (j ? 0.85 : -0.8);
+          card(hiCrown[2], centre, u, v, new THREE.Vector3(0, y + 0.06, 0));
+        }
       }
     }
     trunk(loTrunk[2]!, 0, 1, 0.012, 0.004, 3);
@@ -716,24 +746,27 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     const bushMat = foliageMat(leaves, 0.45, 0.85, 0xc8d4b8);
     const needleMat = foliageMat(needles, 0.4, 0.9, 0xc8d2c0);
     const clumpMat = foliageMat(needleClump, 0.4, 0.9, 0xc8d2c0);
+    const spruceMat = foliageMat(needleClump, 0.4, 0.95, 0xb6c6ae);
     const barkMat = track(new THREE.MeshStandardMaterial({ map: T.bark, ...pbr("bark"), color: 0xc0b0a0 }));
     const pineBarkMat = track(new THREE.MeshStandardMaterial({ map: T.bark, ...pbr("bark"), color: 0xe0a080 }));
     const depth = (map: THREE.Texture) => track(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map, alphaTest: 0.45 }));
     const leafDepth = depth(leaves),
       needleDepth = depth(needles),
       clumpDepth = depth(needleClump);
-    for (const m of [leafMat, bushMat, needleMat, clumpMat]) shade.patch(m, 3);
+    for (const m of [leafMat, bushMat, needleMat, clumpMat, spruceMat]) shade.patch(m, 3);
     for (const m of [barkMat, pineBarkMat]) shade.patch(m, 2);
     // crown centre / radii in the unit-height tree space, per type (broadleaf, pine, spruce, bush)
     const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
     foliage.patch(leafMat, 1, { c: V(0, 0.64, 0), r: V(0.45, 0.45, 0.45) });
     foliage.patch(clumpMat, 1, { c: V(0, 0.85, 0), r: V(0.26, 0.16, 0.26) });
     foliage.patch(needleMat, 1, { c: V(0, 0.55, 0), r: V(0.26, 0.45, 0.26) });
+    foliage.patch(spruceMat, 1, { c: V(0, 0.55, 0), r: V(0.26, 0.45, 0.26) });
     foliage.patch(bushMat, 1, { c: V(0, 0.5, 0), r: V(0.65, 0.5, 0.65) });
     for (const m of [barkMat, pineBarkMat]) foliage.patch(m, 2);
     for (const m of [leafDepth, needleDepth, clumpDepth]) foliage.patch(m, 1); // shadows sway with the crowns
     const crownMat = [leafMat, clumpMat, needleMat, bushMat],
-      crownDepth = [leafDepth, clumpDepth, needleDepth, leafDepth];
+      crownDepth = [leafDepth, clumpDepth, clumpDepth, leafDepth];
+    const nearCrownMat = [leafMat, clumpMat, spruceMat, bushMat];
     const trunkMat = [barkMat, pineBarkMat, barkMat, barkMat];
     const geos = {
       hiT: hiTrunk.map((g) => (g ? toGeom(g) : null)),
@@ -800,7 +833,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     };
     for (let t = 0; t < 4; t++) {
       slots.hiT.push(mkInst(geos.hiT[t], trunkMat[t], t, false, true));
-      slots.hiC.push(mkInst(geos.hiC[t], crownMat[t], t, true, true)!);
+      slots.hiC.push(mkInst(geos.hiC[t], nearCrownMat[t], t, true, true)!);
       slots.loT.push(mkInst(geos.loT[t], trunkMat[t], t, false, false));
       slots.loC.push(mkInst(geos.loC[t], crownMat[t], t, true, false)!);
     }
