@@ -8,6 +8,7 @@ import { createGrassField } from "./grassField";
 import type { QualityPreset } from "./quality";
 import { patchRoadSurface } from "./roadSurface";
 import { smoothRoad } from "./roadCurve";
+import { cardCoverage, patchBirchLod } from "./birchLod";
 
 export interface SceneData {
   name: string;
@@ -42,7 +43,7 @@ export interface BuiltScene {
   stats: { triangles: number; treeInstances: number };
   /** blades currently in the grass field */
   grassStats: () => { blades: number; triangles: number };
-  birchStats: () => { lod0: number; lod1: number };
+  birchStats: () => { lod0: number; lod1: number; cards: number };
   dispose: () => void;
 }
 
@@ -73,7 +74,7 @@ function rng(seed: number) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 }
 
-export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer, opts: { quality: QualityPreset; birchPreview?: boolean }): Promise<BuiltScene> {
+export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer, opts: { quality: QualityPreset; birchPreview?: boolean; birchCards?: boolean }): Promise<BuiltScene> {
   const [data, bin] = await Promise.all([
     fetch(base + "scene.json").then((r) => r.json() as Promise<SceneData>),
     fetch(base + "scene.bin").then((r) => r.arrayBuffer()),
@@ -603,7 +604,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
 
   // ---------------- trees ----------------
   let refillTrees: (cam: THREE.Vector3, fwd: THREE.Vector3, detailR: number, cardR: number, force?: boolean) => void = () => {};
-  let birchCounts = { lod0: 0, lod1: 0 };
+  let birchCounts = { lod0: 0, lod1: 0, cards: 0 };
   let splatWeights: (x: number, z: number) => number[] = () => [1, 0, 0, 0];
   let forestW: (x: number, z: number) => number = () => 0;
   // forest-fog culling hook (set once the fog exists): true if an object of radius r at camera offset (dx, dz) is fully fogged
@@ -869,10 +870,13 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
       sl.n++;
     };
     const birchSlots: { bark: Slot | null; leaves: Slot | null }[] = [];
+    let crossSlot: Slot | null = null;
+    const cardNear = opts.quality.birchCardNear, cardFar = opts.quality.birchCardFar, cardFade = opts.quality.birchCardFade;
+    const modelEnd = Math.min(opts.quality.detailR, cardNear + cardFade / 2);
     if (opts.birchPreview) {
       try {
         const { loadBirchPreview } = await import("./birchPreview");
-        const birch = await loadBirchPreview(renderer);
+        const birch = await loadBirchPreview(renderer, opts.birchCards);
         track(birch);
         const bark = birch.lods[0].bark.material;
         const leaves = noBackfaceFlip(birch.lods[0].leaves.material);
@@ -895,11 +899,53 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
           }
           birchSlots.push({ bark: b, leaves: l });
         }
+        // All broadleaf representations use the same capped height, including
+        // procedural budget fallbacks. Also applied with cards=0 for a fair A/B.
+        for (let i = 0; i < nTrees; i++) {
+          if (tType[i] !== 0) continue;
+          const scale = Math.min(1, 12 / Math.abs(tMat[i * 16 + 5]));
+          for (const k of [0, 1, 2, 4, 5, 6, 8, 9, 10]) tMat[i * 16 + k] *= scale;
+        }
+        if (birch.card) {
+          const source = birch.card.material;
+          const cardMat = track(noBackfaceFlip(new THREE.MeshLambertMaterial({
+            map: source.map, normalMap: opts.quality.groundNormals ? source.normalMap : null,
+            side: THREE.DoubleSide, alphaTest: 0.5, transparent: false,
+          })));
+          shade.patch(cardMat, 3);
+          foliage.patch(cardMat, 1, { c: V(0, 0.65, 0), r: V(0.3, 0.4, 0.3) });
+          const previous = cardMat.onBeforeCompile;
+          cardMat.onBeforeCompile = (shader, r) => {
+            previous.call(cardMat, shader, r);
+            shader.fragmentShader = shader.fragmentShader.replace("#include <lights_fragment_begin>",
+              "#include <lights_fragment_begin>\nreflectedLight.indirectDiffuse += diffuseColor.rgb * 0.25;");
+          };
+          patchBirchLod(cardMat, true, cardNear, cardFar, cardFade);
+          crossSlot = mkInst(birch.card.geometry, cardMat, 0, true, false);
+          if (crossSlot) { crossSlot.mesh.castShadow = false; crossSlot.mesh.receiveShadow = false; }
+          // Bark is shared by other species, so the broadleaf fallback needs
+          // its own material before adding the complementary dither mask.
+          const fallbackBark = track(new THREE.MeshStandardMaterial({ map: T.bark, ...pbr("bark"), color: 0xc0b0a0 }));
+          shade.patch(fallbackBark, 2); foliage.patch(fallbackBark, 2);
+          for (const slot of [slots.hiT[0], slots.loT[0]]) if (slot) slot.mesh.material = fallbackBark;
+          for (const mat of [fallbackBark, leafMat, bark, leaves]) patchBirchLod(mat, false, cardNear, cardFar, cardFade);
+          // Mask shadow geometry too: no ghost tree shadows in the fade zone.
+          const fallbackLeafDepth = depth(leafMat.map!);
+          foliage.patch(fallbackLeafDepth, 1);
+          patchBirchLod(fallbackLeafDepth, false, cardNear, cardFar, cardFade);
+          if (slots.hiC[0]) slots.hiC[0].mesh.customDepthMaterial = fallbackLeafDepth;
+          patchBirchLod(leafShadow, false, cardNear, cardFar, cardFade);
+          const trunkShadow = track(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }));
+          foliage.patch(trunkShadow, 2);
+          patchBirchLod(trunkShadow, false, cardNear, cardFar, cardFade);
+          if (slots.hiT[0]) slots.hiT[0].mesh.customDepthMaterial = trunkShadow;
+          for (const slot of birchSlots) if (slot.bark) slot.bark.mesh.customDepthMaterial = trunkShadow;
+        }
       } catch (error) {
         console.warn("Local birch preview unavailable; retaining procedural trees", error);
       }
     }
-    const all = () => [...slots.hiT, ...slots.hiC, ...slots.loT, ...slots.loC, ...birchSlots.flatMap((s) => [s.bark, s.leaves])].filter((x): x is Slot => !!x);
+    const all = () => [...slots.hiT, ...slots.hiC, ...slots.loT, ...slots.loC, crossSlot, ...birchSlots.flatMap((s) => [s.bark, s.leaves])].filter((x): x is Slot => !!x);
     let last = { x: NaN, z: NaN, fx: 0, fz: 0, d: 0, c: 0 };
     refillTrees = (cam, fwd, detailR, cardR, force) => {
       const moved = Math.hypot(cam.x - last.x, cam.z - last.z);
@@ -934,10 +980,15 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
               dd = dx * dx + dz * dz;
             if (dd > d2lo) continue;
             const t = tType[i];
-            if (birchSlots.length && t === 0 && dd < Math.min(detailR, 35) ** 2) {
+            // Keep both representations for 4 m beyond their shader bands:
+            // the camera moves continuously but CPU sets refill every 4 m.
+            if (crossSlot && t === 0 && dd >= (cardNear - cardFade / 2 - 4) ** 2 && dd < (cardFar + 4) ** 2) put(crossSlot, i);
+            if (birchSlots.length && t === 0 && dd < (modelEnd + 4) ** 2) {
               birchCandidates.push({ i, dd });
               continue;
             }
+            if (crossSlot && t === 0 && cardCoverage(Math.sqrt(dd) - 4, cardNear, cardFar, cardFade) === 1
+              && cardCoverage(Math.sqrt(dd) + 4, cardNear, cardFar, cardFade) === 1) continue;
             if (dd < d2hi) {
               put(slots.hiT[t], i);
               put(slots.hiC[t], i);
@@ -966,7 +1017,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
           if (level === 0) detailed++; else simple++;
         }
       }
-      birchCounts = { lod0: detailed, lod1: simple };
+      birchCounts = { lod0: detailed, lod1: simple, cards: crossSlot?.n ?? 0 };
       for (const sl of all()) {
         const m = sl.mesh;
         m.count = sl.n;

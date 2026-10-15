@@ -36,6 +36,7 @@ const props = withDefaults(
     wind?: boolean;
     /** opt-in prepared birch models for the local personal project */
     birchPreview?: boolean;
+    birchCards?: boolean;
     /** test mode: fixed animation time [s] (for reproducible frames / wind sequences) */
     timeS?: number;
   }>(),
@@ -173,7 +174,7 @@ function frame(now: number) {
   built.update(camera.position, fwd, { detailR: Math.min(preset.detailR, cardR), cardR, grassR: preset.grassR, fogFar: fog.far });
   const t0 = performance.now();
   renderer.render(scene, camera);
-  (window as unknown as { __rideInfo: object }).__rideInfo = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, blades: built.grassStats().blades, birches: built.birchStats(), render: { width: renderWidth, height: renderHeight } };
+  (window as unknown as { __rideInfo: object }).__rideInfo = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, textures: renderer.info.memory.textures, blades: built.grassStats().blades, birches: built.birchStats(), render: { width: renderWidth, height: renderHeight } };
   if (props.testMode) {
     // headless (software GL) is far too slow for a continuous loop: render a few frames, report the cost, stop
     renderer.getContext().readPixels(0, 0, 1, 1, renderer.getContext().RGBA, renderer.getContext().UNSIGNED_BYTE, new Uint8Array(4)); // wait for the GPU
@@ -206,7 +207,7 @@ onMounted(async () => {
   window.addEventListener("resize", resize);
 
   const base = props.scene.endsWith("/") ? props.scene : props.scene + "/";
-  const [hdr, b] = await Promise.all([new HDRLoader().loadAsync("scene-assets/sky.hdr"), loadProcScene(base, renderer, { quality: preset, birchPreview: props.birchPreview })]);
+  const [hdr, b] = await Promise.all([new HDRLoader().loadAsync("scene-assets/sky.hdr"), loadProcScene(base, renderer, { quality: preset, birchPreview: props.birchPreview, birchCards: props.birchCards })]);
   if (disposed) return;
   built = b;
   hdr.mapping = THREE.EquirectangularReflectionMapping;

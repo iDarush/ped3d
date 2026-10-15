@@ -3,12 +3,13 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
 
 export interface BirchPreview {
+  card?: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>;
   lods: { bark: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>; leaves: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial> }[];
   dispose: () => void;
 }
 
 /** Local personal-project assets, staged by tools/prepare-local-models.mjs. */
-export async function loadBirchPreview(renderer: THREE.WebGLRenderer): Promise<BirchPreview> {
+export async function loadBirchPreview(renderer: THREE.WebGLRenderer, withCards = false): Promise<BirchPreview> {
   const base = import.meta.env.BASE_URL;
   const ktx = new KTX2Loader().setTranscoderPath(base + "basis/").detectSupport(renderer);
   const loader = new GLTFLoader().setKTX2Loader(ktx);
@@ -47,7 +48,28 @@ export async function loadBirchPreview(renderer: THREE.WebGLRenderer): Promise<B
     // Reuse the same GPU materials/textures for both geometry levels.
     lods[1].bark.material = lods[0].bark.material;
     lods[1].leaves.material = lods[0].leaves.material;
-    return { lods, dispose };
+    let card: BirchPreview["card"];
+    if (withCards) {
+      try {
+        const gltf = await loader.loadAsync(`${base}scene-assets/birch/cards/birch_card_cross.glb`);
+        gltf.scene.updateMatrixWorld(true);
+        gltf.scene.traverse((obj) => {
+          if (!(obj instanceof THREE.Mesh)) return;
+          if (Array.isArray(obj.material) || !(obj.material instanceof THREE.MeshStandardMaterial)) throw new Error("Invalid birch card material");
+          geometries.add(obj.geometry); materials.add(obj.material);
+          Object.values(obj.material).forEach((v) => { if (v instanceof THREE.Texture) textures.add(v); });
+          // Card padding is intentional: unit scale is the source TREE height,
+          // not the full card rectangle height. Never normalise its bounding box.
+          obj.geometry.applyMatrix4(obj.matrixWorld);
+          card = obj as BirchPreview["card"];
+        });
+        if (!card) throw new Error("Birch cross card missing");
+      } catch (error) {
+        card = undefined;
+        console.warn("Birch cross cards unavailable; retaining model LODs", error);
+      }
+    }
+    return { lods, card, dispose };
   } catch (error) {
     dispose();
     throw error;

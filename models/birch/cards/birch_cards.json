@@ -1,0 +1,1169 @@
+{
+ "source": "TurboSquid 2561468 birch (LOD0 of out/birch_source.blend), TurboSquid Standard/royalty-free license (exact name to be confirmed)",
+ "atlas": {
+  "color": "textures/birch_cards_color.ktx2",
+  "normal": "textures/birch_cards_normal.ktx2",
+  "size": [
+   2048,
+   2048
+  ],
+  "uv_convention": "glTF/three.js: origin top-left, v down (texture.flipY=false as GLTFLoader sets)",
+  "normal_encoding": "view/card-space normal*0.5+0.5: x=card right(u), y=up, z=towards viewer; OpenGL (+Y) tangent space for an upright quad",
+  "lighting": "unlit albedo x soft ambient occlusion (0.62..1.0), no directional light; foliage normals = 50% leaf normal + 50% crown-sphere normal"
+ },
+ "tree_cells": {
+  "rows": "variant 0..3 (top to bottom)",
+  "columns": "azimuth 0..315 step 45 (left to right); azimuth a = view from direction (sin a, -cos a) in Blender Z-up (glTF: x=sin a, z=cos a), counter-clockwise from above",
+  "cell_px": [
+   256,
+   448
+  ],
+  "cell_world_m": [
+   3.3112,
+   5.7946
+  ],
+  "pivot": "trunk base = cell bottom-centre, 10 px above bottom edge",
+  "source_tree_height_m": 4.943
+ },
+ "variants": [
+  {
+   "row": 0,
+   "name": "v0_original",
+   "mirrored": false,
+   "scale_xy": 1.0,
+   "scale_z": 1.0,
+   "leaf_cards_removed": 0.0,
+   "tint": [
+    1,
+    1,
+    1
+   ],
+   "height_m": 4.943
+  },
+  {
+   "row": 1,
+   "name": "v1_mirrored",
+   "mirrored": true,
+   "scale_xy": 1.0,
+   "scale_z": 1.0,
+   "leaf_cards_removed": 0.0,
+   "tint": [
+    0.96,
+    1.0,
+    0.94
+   ],
+   "height_m": 4.943
+  },
+  {
+   "row": 2,
+   "name": "v2_slender_sparse",
+   "mirrored": false,
+   "scale_xy": 0.92,
+   "scale_z": 1.12,
+   "leaf_cards_removed": 0.3,
+   "tint": [
+    1.0,
+    1.02,
+    0.96
+   ],
+   "height_m": 5.536
+  },
+  {
+   "row": 3,
+   "name": "v3_mirrored_wide_late",
+   "mirrored": true,
+   "scale_xy": 1.1,
+   "scale_z": 0.95,
+   "leaf_cards_removed": 0.2,
+   "tint": [
+    1.08,
+    1.04,
+    0.82
+   ],
+   "height_m": 4.696
+  }
+ ],
+ "meshes": {
+  "units": "1.0 = height of variant-0 tree (4.94 m source); instance scale = desired tree height in metres",
+  "origin": "trunk base",
+  "up": "Y (glTF)",
+  "quad_w": 0.6699,
+  "quad_h": 1.1723,
+  "pivot_v_in_quad": 0.0223,
+  "variant_select": "per-instance UV offset: v += row*448/2048 (rows), u += col*256/2048 for azimuth rotation (wrap modulo 8 cells)",
+  "files": {
+   "birch_card_cross.glb": {
+    "tris": 4,
+    "planes": [
+     {
+      "angle_deg": 0,
+      "cell_column": 0
+     },
+     {
+      "angle_deg": 90,
+      "cell_column": 2
+     }
+    ]
+   },
+   "birch_card_3plane.glb": {
+    "tris": 6,
+    "planes": [
+     {
+      "angle_deg": 0,
+      "cell_column": 0
+     },
+     {
+      "angle_deg": 60,
+      "cell_column": 1
+     },
+     {
+      "angle_deg": 120,
+      "cell_column": 3
+     }
+    ]
+   },
+   "birch_card_billboard.glb": {
+    "tris": 2,
+    "planes": [
+     {
+      "angle_deg": 0,
+      "cell_column": 0
+     }
+    ]
+   },
+   "understory_card_cross.glb": {
+    "tris": 4,
+    "planes": [
+     {
+      "angle_deg": 0,
+      "cell": "understory_0"
+     },
+     {
+      "angle_deg": 90,
+      "cell": "understory_0"
+     }
+    ]
+   }
+  }
+ },
+ "understory": {
+  "cells": "bottom row, 4 cells 512x256",
+  "cell_world_m": [
+   2.4,
+   1.2
+  ],
+  "mesh": "understory_card_cross.glb: unit = cell width 2.4 m (scale 1 = 2.4 m wide bush)"
+ },
+ "forest_band": {
+  "file": "textures/forest_band_color.ktx2",
+  "size": [
+   2048,
+   256
+  ],
+  "tile_world_m": [
+   64.0,
+   8.0
+  ],
+  "wrapS": "RepeatWrapping (seamless horizontally)",
+  "content": "4 rows of instanced birch variants + bushes, lower ~22-42%% of height filled to opaque forest interior, alpha on top edge",
+  "seam_alpha_mae": 0.0682
+ },
+ "cells": [
+  {
+   "id": "tree_0_0",
+   "kind": "tree",
+   "variant": 0,
+   "variant_name": "v0_original",
+   "azimuth_deg": 0,
+   "px": [
+    0,
+    0,
+    256,
+    448
+   ],
+   "uv": [
+    0.0,
+    0.0,
+    0.125,
+    0.21875
+   ],
+   "pivot_uv": [
+    0.0625,
+    0.2138671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_0_1",
+   "kind": "tree",
+   "variant": 0,
+   "variant_name": "v0_original",
+   "azimuth_deg": 45,
+   "px": [
+    256,
+    0,
+    256,
+    448
+   ],
+   "uv": [
+    0.125,
+    0.0,
+    0.25,
+    0.21875
+   ],
+   "pivot_uv": [
+    0.1875,
+    0.2138671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_0_2",
+   "kind": "tree",
+   "variant": 0,
+   "variant_name": "v0_original",
+   "azimuth_deg": 90,
+   "px": [
+    512,
+    0,
+    256,
+    448
+   ],
+   "uv": [
+    0.25,
+    0.0,
+    0.375,
+    0.21875
+   ],
+   "pivot_uv": [
+    0.3125,
+    0.2138671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_0_3",
+   "kind": "tree",
+   "variant": 0,
+   "variant_name": "v0_original",
+   "azimuth_deg": 135,
+   "px": [
+    768,
+    0,
+    256,
+    448
+   ],
+   "uv": [
+    0.375,
+    0.0,
+    0.5,
+    0.21875
+   ],
+   "pivot_uv": [
+    0.4375,
+    0.2138671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_0_4",
+   "kind": "tree",
+   "variant": 0,
+   "variant_name": "v0_original",
+   "azimuth_deg": 180,
+   "px": [
+    1024,
+    0,
+    256,
+    448
+   ],
+   "uv": [
+    0.5,
+    0.0,
+    0.625,
+    0.21875
+   ],
+   "pivot_uv": [
+    0.5625,
+    0.2138671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_0_5",
+   "kind": "tree",
+   "variant": 0,
+   "variant_name": "v0_original",
+   "azimuth_deg": 225,
+   "px": [
+    1280,
+    0,
+    256,
+    448
+   ],
+   "uv": [
+    0.625,
+    0.0,
+    0.75,
+    0.21875
+   ],
+   "pivot_uv": [
+    0.6875,
+    0.2138671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_0_6",
+   "kind": "tree",
+   "variant": 0,
+   "variant_name": "v0_original",
+   "azimuth_deg": 270,
+   "px": [
+    1536,
+    0,
+    256,
+    448
+   ],
+   "uv": [
+    0.75,
+    0.0,
+    0.875,
+    0.21875
+   ],
+   "pivot_uv": [
+    0.8125,
+    0.2138671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_0_7",
+   "kind": "tree",
+   "variant": 0,
+   "variant_name": "v0_original",
+   "azimuth_deg": 315,
+   "px": [
+    1792,
+    0,
+    256,
+    448
+   ],
+   "uv": [
+    0.875,
+    0.0,
+    1.0,
+    0.21875
+   ],
+   "pivot_uv": [
+    0.9375,
+    0.2138671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_1_0",
+   "kind": "tree",
+   "variant": 1,
+   "variant_name": "v1_mirrored",
+   "azimuth_deg": 0,
+   "px": [
+    0,
+    448,
+    256,
+    448
+   ],
+   "uv": [
+    0.0,
+    0.21875,
+    0.125,
+    0.4375
+   ],
+   "pivot_uv": [
+    0.0625,
+    0.4326171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_1_1",
+   "kind": "tree",
+   "variant": 1,
+   "variant_name": "v1_mirrored",
+   "azimuth_deg": 45,
+   "px": [
+    256,
+    448,
+    256,
+    448
+   ],
+   "uv": [
+    0.125,
+    0.21875,
+    0.25,
+    0.4375
+   ],
+   "pivot_uv": [
+    0.1875,
+    0.4326171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_1_2",
+   "kind": "tree",
+   "variant": 1,
+   "variant_name": "v1_mirrored",
+   "azimuth_deg": 90,
+   "px": [
+    512,
+    448,
+    256,
+    448
+   ],
+   "uv": [
+    0.25,
+    0.21875,
+    0.375,
+    0.4375
+   ],
+   "pivot_uv": [
+    0.3125,
+    0.4326171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_1_3",
+   "kind": "tree",
+   "variant": 1,
+   "variant_name": "v1_mirrored",
+   "azimuth_deg": 135,
+   "px": [
+    768,
+    448,
+    256,
+    448
+   ],
+   "uv": [
+    0.375,
+    0.21875,
+    0.5,
+    0.4375
+   ],
+   "pivot_uv": [
+    0.4375,
+    0.4326171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_1_4",
+   "kind": "tree",
+   "variant": 1,
+   "variant_name": "v1_mirrored",
+   "azimuth_deg": 180,
+   "px": [
+    1024,
+    448,
+    256,
+    448
+   ],
+   "uv": [
+    0.5,
+    0.21875,
+    0.625,
+    0.4375
+   ],
+   "pivot_uv": [
+    0.5625,
+    0.4326171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_1_5",
+   "kind": "tree",
+   "variant": 1,
+   "variant_name": "v1_mirrored",
+   "azimuth_deg": 225,
+   "px": [
+    1280,
+    448,
+    256,
+    448
+   ],
+   "uv": [
+    0.625,
+    0.21875,
+    0.75,
+    0.4375
+   ],
+   "pivot_uv": [
+    0.6875,
+    0.4326171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_1_6",
+   "kind": "tree",
+   "variant": 1,
+   "variant_name": "v1_mirrored",
+   "azimuth_deg": 270,
+   "px": [
+    1536,
+    448,
+    256,
+    448
+   ],
+   "uv": [
+    0.75,
+    0.21875,
+    0.875,
+    0.4375
+   ],
+   "pivot_uv": [
+    0.8125,
+    0.4326171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_1_7",
+   "kind": "tree",
+   "variant": 1,
+   "variant_name": "v1_mirrored",
+   "azimuth_deg": 315,
+   "px": [
+    1792,
+    448,
+    256,
+    448
+   ],
+   "uv": [
+    0.875,
+    0.21875,
+    1.0,
+    0.4375
+   ],
+   "pivot_uv": [
+    0.9375,
+    0.4326171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.943
+  },
+  {
+   "id": "tree_2_0",
+   "kind": "tree",
+   "variant": 2,
+   "variant_name": "v2_slender_sparse",
+   "azimuth_deg": 0,
+   "px": [
+    0,
+    896,
+    256,
+    448
+   ],
+   "uv": [
+    0.0,
+    0.4375,
+    0.125,
+    0.65625
+   ],
+   "pivot_uv": [
+    0.0625,
+    0.6513671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 5.536
+  },
+  {
+   "id": "tree_2_1",
+   "kind": "tree",
+   "variant": 2,
+   "variant_name": "v2_slender_sparse",
+   "azimuth_deg": 45,
+   "px": [
+    256,
+    896,
+    256,
+    448
+   ],
+   "uv": [
+    0.125,
+    0.4375,
+    0.25,
+    0.65625
+   ],
+   "pivot_uv": [
+    0.1875,
+    0.6513671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 5.536
+  },
+  {
+   "id": "tree_2_2",
+   "kind": "tree",
+   "variant": 2,
+   "variant_name": "v2_slender_sparse",
+   "azimuth_deg": 90,
+   "px": [
+    512,
+    896,
+    256,
+    448
+   ],
+   "uv": [
+    0.25,
+    0.4375,
+    0.375,
+    0.65625
+   ],
+   "pivot_uv": [
+    0.3125,
+    0.6513671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 5.536
+  },
+  {
+   "id": "tree_2_3",
+   "kind": "tree",
+   "variant": 2,
+   "variant_name": "v2_slender_sparse",
+   "azimuth_deg": 135,
+   "px": [
+    768,
+    896,
+    256,
+    448
+   ],
+   "uv": [
+    0.375,
+    0.4375,
+    0.5,
+    0.65625
+   ],
+   "pivot_uv": [
+    0.4375,
+    0.6513671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 5.536
+  },
+  {
+   "id": "tree_2_4",
+   "kind": "tree",
+   "variant": 2,
+   "variant_name": "v2_slender_sparse",
+   "azimuth_deg": 180,
+   "px": [
+    1024,
+    896,
+    256,
+    448
+   ],
+   "uv": [
+    0.5,
+    0.4375,
+    0.625,
+    0.65625
+   ],
+   "pivot_uv": [
+    0.5625,
+    0.6513671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 5.536
+  },
+  {
+   "id": "tree_2_5",
+   "kind": "tree",
+   "variant": 2,
+   "variant_name": "v2_slender_sparse",
+   "azimuth_deg": 225,
+   "px": [
+    1280,
+    896,
+    256,
+    448
+   ],
+   "uv": [
+    0.625,
+    0.4375,
+    0.75,
+    0.65625
+   ],
+   "pivot_uv": [
+    0.6875,
+    0.6513671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 5.536
+  },
+  {
+   "id": "tree_2_6",
+   "kind": "tree",
+   "variant": 2,
+   "variant_name": "v2_slender_sparse",
+   "azimuth_deg": 270,
+   "px": [
+    1536,
+    896,
+    256,
+    448
+   ],
+   "uv": [
+    0.75,
+    0.4375,
+    0.875,
+    0.65625
+   ],
+   "pivot_uv": [
+    0.8125,
+    0.6513671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 5.536
+  },
+  {
+   "id": "tree_2_7",
+   "kind": "tree",
+   "variant": 2,
+   "variant_name": "v2_slender_sparse",
+   "azimuth_deg": 315,
+   "px": [
+    1792,
+    896,
+    256,
+    448
+   ],
+   "uv": [
+    0.875,
+    0.4375,
+    1.0,
+    0.65625
+   ],
+   "pivot_uv": [
+    0.9375,
+    0.6513671875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 5.536
+  },
+  {
+   "id": "tree_3_0",
+   "kind": "tree",
+   "variant": 3,
+   "variant_name": "v3_mirrored_wide_late",
+   "azimuth_deg": 0,
+   "px": [
+    0,
+    1344,
+    256,
+    448
+   ],
+   "uv": [
+    0.0,
+    0.65625,
+    0.125,
+    0.875
+   ],
+   "pivot_uv": [
+    0.0625,
+    0.8701171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.696
+  },
+  {
+   "id": "tree_3_1",
+   "kind": "tree",
+   "variant": 3,
+   "variant_name": "v3_mirrored_wide_late",
+   "azimuth_deg": 45,
+   "px": [
+    256,
+    1344,
+    256,
+    448
+   ],
+   "uv": [
+    0.125,
+    0.65625,
+    0.25,
+    0.875
+   ],
+   "pivot_uv": [
+    0.1875,
+    0.8701171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.696
+  },
+  {
+   "id": "tree_3_2",
+   "kind": "tree",
+   "variant": 3,
+   "variant_name": "v3_mirrored_wide_late",
+   "azimuth_deg": 90,
+   "px": [
+    512,
+    1344,
+    256,
+    448
+   ],
+   "uv": [
+    0.25,
+    0.65625,
+    0.375,
+    0.875
+   ],
+   "pivot_uv": [
+    0.3125,
+    0.8701171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.696
+  },
+  {
+   "id": "tree_3_3",
+   "kind": "tree",
+   "variant": 3,
+   "variant_name": "v3_mirrored_wide_late",
+   "azimuth_deg": 135,
+   "px": [
+    768,
+    1344,
+    256,
+    448
+   ],
+   "uv": [
+    0.375,
+    0.65625,
+    0.5,
+    0.875
+   ],
+   "pivot_uv": [
+    0.4375,
+    0.8701171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.696
+  },
+  {
+   "id": "tree_3_4",
+   "kind": "tree",
+   "variant": 3,
+   "variant_name": "v3_mirrored_wide_late",
+   "azimuth_deg": 180,
+   "px": [
+    1024,
+    1344,
+    256,
+    448
+   ],
+   "uv": [
+    0.5,
+    0.65625,
+    0.625,
+    0.875
+   ],
+   "pivot_uv": [
+    0.5625,
+    0.8701171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.696
+  },
+  {
+   "id": "tree_3_5",
+   "kind": "tree",
+   "variant": 3,
+   "variant_name": "v3_mirrored_wide_late",
+   "azimuth_deg": 225,
+   "px": [
+    1280,
+    1344,
+    256,
+    448
+   ],
+   "uv": [
+    0.625,
+    0.65625,
+    0.75,
+    0.875
+   ],
+   "pivot_uv": [
+    0.6875,
+    0.8701171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.696
+  },
+  {
+   "id": "tree_3_6",
+   "kind": "tree",
+   "variant": 3,
+   "variant_name": "v3_mirrored_wide_late",
+   "azimuth_deg": 270,
+   "px": [
+    1536,
+    1344,
+    256,
+    448
+   ],
+   "uv": [
+    0.75,
+    0.65625,
+    0.875,
+    0.875
+   ],
+   "pivot_uv": [
+    0.8125,
+    0.8701171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.696
+  },
+  {
+   "id": "tree_3_7",
+   "kind": "tree",
+   "variant": 3,
+   "variant_name": "v3_mirrored_wide_late",
+   "azimuth_deg": 315,
+   "px": [
+    1792,
+    1344,
+    256,
+    448
+   ],
+   "uv": [
+    0.875,
+    0.65625,
+    1.0,
+    0.875
+   ],
+   "pivot_uv": [
+    0.9375,
+    0.8701171875
+   ],
+   "cell_world_m": [
+    3.3112,
+    5.7946
+   ],
+   "tree_height_m": 4.696
+  },
+  {
+   "id": "understory_0",
+   "kind": "understory",
+   "px": [
+    0,
+    1792,
+    512,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.875,
+    0.25,
+    1.0
+   ],
+   "pivot_uv": [
+    0.125,
+    0.9970703125
+   ],
+   "cell_world_m": [
+    2.4,
+    1.2
+   ],
+   "bush_height_m": 0.936
+  },
+  {
+   "id": "understory_1",
+   "kind": "understory",
+   "px": [
+    512,
+    1792,
+    512,
+    256
+   ],
+   "uv": [
+    0.25,
+    0.875,
+    0.5,
+    1.0
+   ],
+   "pivot_uv": [
+    0.375,
+    0.9970703125
+   ],
+   "cell_world_m": [
+    2.4,
+    1.2
+   ],
+   "bush_height_m": 0.653
+  },
+  {
+   "id": "understory_2",
+   "kind": "understory",
+   "px": [
+    1024,
+    1792,
+    512,
+    256
+   ],
+   "uv": [
+    0.5,
+    0.875,
+    0.75,
+    1.0
+   ],
+   "pivot_uv": [
+    0.625,
+    0.9970703125
+   ],
+   "cell_world_m": [
+    2.4,
+    1.2
+   ],
+   "bush_height_m": 1.064
+  },
+  {
+   "id": "understory_3",
+   "kind": "understory",
+   "px": [
+    1536,
+    1792,
+    512,
+    256
+   ],
+   "uv": [
+    0.75,
+    0.875,
+    1.0,
+    1.0
+   ],
+   "pivot_uv": [
+    0.875,
+    0.9970703125
+   ],
+   "cell_world_m": [
+    2.4,
+    1.2
+   ],
+   "bush_height_m": 0.55
+  }
+ ]
+}

@@ -14,6 +14,12 @@ if (!existsSync(source)) {
   if (missing.length) throw new Error(`Incomplete local birch: ${missing.join(", ")}`);
   const copy = (from, to) => { mkdirSync(dirname(to), { recursive: true }); copyFileSync(from, to); };
   for (const file of files) copy(resolve(source, file), resolve(root, "public/scene-assets/birch", file));
+  const cardsSource = resolve(root, "models/birch/cards");
+  if (existsSync(cardsSource)) {
+    for (const file of ["birch_card_cross.glb", "birch_cards.json", "textures/birch_cards_color.ktx2", "textures/birch_cards_normal.ktx2"]) {
+      copy(resolve(cardsSource, file), resolve(root, "public/scene-assets/birch/cards", file));
+    }
+  }
   for (const file of ["basis_transcoder.js", "basis_transcoder.wasm"]) {
     copy(resolve(root, "node_modules/three/examples/jsm/libs/basis", file), resolve(root, "public/basis", file));
   }

@@ -1,12 +1,13 @@
 // Headless screenshots of the procedural scene: node shoot-proc.mjs [filter]
 import { chromium } from "playwright-core";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 const base = process.env.BASE ?? "http://localhost:4173/";
 const D = (process.env.DS ?? "3000,3700,4300,4900,5450,5850").split(",").map(Number);
 const cams = (process.env.CAMS ?? "eye,chase").split(",");
 const extra = process.env.EXTRA ?? "";
 const motionSeconds = Math.min(30, Math.max(0, Number(process.env.MOTION_SECONDS ?? 0) || 0));
 const motionSpeed = Number(new URLSearchParams(extra).get("speed") ?? 25);
+const warmupSeconds = Math.max(0, Math.min(30, Number(process.env.WARMUP_SECONDS ?? 2)));
 const executablePath = process.env.CHROME_PATH ?? [
   "C:/Program Files/Google/Chrome/Application/chrome.exe",
   "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
@@ -38,9 +39,9 @@ for (const d of D)
     let motion = null;
     if (motionSeconds) {
       await page.waitForFunction(() => window.__rideInfo, null, { timeout: 120000 });
-      motion = await page.evaluate(async ({ seconds, speed }) => {
+      motion = await page.evaluate(async ({ seconds, speed, warmup }) => {
         // Warm up at the requested location, then start the same ride each time.
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, warmup * 1000));
         const speedInput = document.querySelector('.panel input[type="range"]');
         if (!speedInput) throw new Error("Ride speed control not found");
         speedInput.value = String(speed);
@@ -58,8 +59,9 @@ for (const d of D)
           requestAnimationFrame(frame);
         });
         const sorted = [...times].sort((a, b) => a - b);
-        return { frames: times.length, medianMs: sorted[Math.floor(sorted.length * 0.5)], p95Ms: sorted[Math.floor(sorted.length * 0.95)], meanFps: times.length * 1000 / times.reduce((a, b) => a + b, 0) };
-      }, { seconds: motionSeconds, speed: motionSpeed });
+        const slowest = sorted.slice(-Math.max(1, Math.ceil(sorted.length * 0.01)));
+        return { frames: times.length, medianMs: sorted[Math.floor(sorted.length * 0.5)], p95Ms: sorted[Math.floor(sorted.length * 0.95)], onePercentLowFps: 1000 / (slowest.reduce((a, b) => a + b, 0) / slowest.length), meanFps: times.length * 1000 / times.reduce((a, b) => a + b, 0) };
+      }, { seconds: motionSeconds, speed: motionSpeed, warmup: warmupSeconds });
     } else {
       await page.waitForFunction(() => window.__rideDone, null, { timeout: 240000, polling: 1000 }).catch(() => errors.push("error: frames never finished"));
     }
@@ -78,7 +80,9 @@ for (const d of D)
     console.log("GPU:", gpu);
     if (info?.birches) console.log("Local birch instances:", JSON.stringify(info.birches));
     if (info?.render) console.log("Drawing buffer:", JSON.stringify(info.render));
+    if (info?.textures != null) console.log("GPU texture objects:", info.textures);
     if (motion) console.log("Ride intervals (headless):", JSON.stringify(motion));
+    writeFileSync(`${output}/${name}.json`, JSON.stringify({ startDistanceM: d, camera: cam, extra, viewport: page.viewportSize(), dpr: Number(process.env.DPR ?? 1), warmupSeconds, motionSeconds, gpu, info, motion, errors }, null, 2));
     if (errors.some((e) => !e.startsWith("warning"))) failures++;
     await page.close();
   }

@@ -9,6 +9,9 @@ export interface QualityPreset {
   birchDetailCount: number;
   birchSimpleCount: number;
   birchShadows: boolean;
+  birchCardNear: number;
+  birchCardFar: number;
+  birchCardFade: number;
   shadows: boolean;
   shadowMap: number;
   /** half-size of the sun's shadow box around the rider, m */
@@ -36,9 +39,9 @@ export interface QualityPreset {
 }
 
 export const QUALITY: Record<Quality, QualityPreset> = {
-  low: { pixelRatio: 1, maxPixels: 921600, birchDetailCount: 2, birchSimpleCount: 4, birchShadows: false, shadows: false, shadowMap: 1024, shadowHalf: 40, detailR: 45, cardR: 900, grassR: 22, grassDensity: 28, grassSegments: 2, grassShadows: false, liteTrees: true, forestFogFar: 110, antialias: false, groundNormals: false },
-  med: { pixelRatio: 1.25, maxPixels: 1440000, birchDetailCount: 3, birchSimpleCount: 8, birchShadows: false, shadows: true, shadowMap: 1024, shadowHalf: 45, detailR: 70, cardR: 1600, grassR: 32, grassDensity: 32, grassSegments: 2, grassShadows: false, liteTrees: true, forestFogFar: 140, antialias: true, groundNormals: true },
-  high: { pixelRatio: 2, maxPixels: 8294400, birchDetailCount: 8, birchSimpleCount: 16, birchShadows: true, shadows: true, shadowMap: 2048, shadowHalf: 90, detailR: 120, cardR: 2600, grassR: 60, grassDensity: 55, grassSegments: 3, grassShadows: true, liteTrees: false, forestFogFar: 190, antialias: true, groundNormals: true },
+  low: { pixelRatio: 1, maxPixels: 921600, birchDetailCount: 2, birchSimpleCount: 4, birchCardNear: 25, birchCardFar: 180, birchCardFade: 3, birchShadows: false, shadows: false, shadowMap: 1024, shadowHalf: 40, detailR: 45, cardR: 900, grassR: 22, grassDensity: 28, grassSegments: 2, grassShadows: false, liteTrees: true, forestFogFar: 110, antialias: false, groundNormals: false },
+  med: { pixelRatio: 1.25, maxPixels: 1440000, birchDetailCount: 3, birchSimpleCount: 8, birchCardNear: 40, birchCardFar: 300, birchCardFade: 4, birchShadows: false, shadows: true, shadowMap: 1024, shadowHalf: 45, detailR: 70, cardR: 1600, grassR: 32, grassDensity: 32, grassSegments: 2, grassShadows: false, liteTrees: true, forestFogFar: 140, antialias: true, groundNormals: true },
+  high: { pixelRatio: 2, maxPixels: 8294400, birchDetailCount: 8, birchSimpleCount: 16, birchCardNear: 60, birchCardFar: 400, birchCardFade: 6, birchShadows: true, shadows: true, shadowMap: 2048, shadowHalf: 90, detailR: 120, cardR: 2600, grassR: 60, grassDensity: 55, grassSegments: 3, grassShadows: true, liteTrees: false, forestFogFar: 190, antialias: true, groundNormals: true },
 };
 
 export function parseQuality(v: string | null | undefined): Quality {

@@ -1,0 +1,38 @@
+{
+ "birch_cards_color": {
+  "codec": "ETC1S RGBA sRGB, coverage-preserving mips",
+  "mask_IoU_mip0": 0.8975,
+  "coverage_src": 0.0971,
+  "coverage_ktx2": 0.0965,
+  "rgb_psnr_db": 28.3,
+  "coverage_per_mip_0_6": [
+   0.0965,
+   0.0966,
+   0.0972,
+   0.0969,
+   0.095,
+   0.0979,
+   0.0791
+  ],
+  "coverage_plain_mips_0_2_3_4_5_for_reference": [
+   0.0965,
+   0.0907,
+   0.086,
+   0.0735,
+   0.0771
+  ],
+  "uastc_alternative": "UASTC RGBA: IoU 0.969 vs 0.898, but 2.8 MB vs 0.89 MB; visually ETC1S ~identical (speckle-level differences)"
+ },
+ "forest_band_color": {
+  "codec": "ETC1S RGBA sRGB, coverage-preserving mips",
+  "mask_IoU_mip0": 0.99,
+  "coverage_src": 0.596,
+  "coverage_ktx2": 0.5946,
+  "rgb_psnr_db": 29.6
+ },
+ "birch_cards_normal": {
+  "codec": "UASTC q3 RDO1.0 zstd18, linear, 1024^2",
+  "angular_err_deg_mean": 3.28,
+  "p99": 14.08
+ }
+}
