@@ -74,7 +74,7 @@ function rng(seed: number) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 }
 
-export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer, opts: { quality: QualityPreset; birchPreview?: boolean; birchCards?: boolean }): Promise<BuiltScene> {
+export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer, opts: { quality: QualityPreset; birchPreview?: boolean; birchCards?: boolean; allBirches?: boolean }): Promise<BuiltScene> {
   const [data, bin] = await Promise.all([
     fetch(base + "scene.json").then((r) => r.json() as Promise<SceneData>),
     fetch(base + "scene.bin").then((r) => r.arrayBuffer()),
@@ -820,8 +820,8 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     const perType = [0, 0, 0, 0];
     for (let i = 0; i < nTrees; i++) {
       const type = treesArr[i * 6 + 5];
-      tType[i] = type;
-      perType[type]++;
+      tType[i] = opts.allBirches ? 0 : type;
+      perType[tType[i]]++;
       const h = treesArr[i * 6 + 3];
       let wide = type === 0 ? 0.8 + R() * 0.45 : type === 3 ? 1.2 + R() * 0.6 : 0.85 + R() * 0.3;
       ps.set(treesArr[i * 6], treesArr[i * 6 + 1] - 0.2, treesArr[i * 6 + 2]);
@@ -920,31 +920,34 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
             shader.fragmentShader = shader.fragmentShader.replace("#include <lights_fragment_begin>",
               "#include <lights_fragment_begin>\nreflectedLight.indirectDiffuse += diffuseColor.rgb * 0.25;");
           };
-          patchBirchLod(cardMat, true, cardNear, cardFar, cardFade);
+          if (!opts.allBirches) patchBirchLod(cardMat, true, cardNear, cardFar, cardFade);
           crossSlot = mkInst(birch.card.geometry, cardMat, 0, true, false);
           if (crossSlot) { crossSlot.mesh.castShadow = false; crossSlot.mesh.receiveShadow = false; }
-          // Bark is shared by other species, so the broadleaf fallback needs
-          // its own material before adding the complementary dither mask.
-          const fallbackBark = track(new THREE.MeshStandardMaterial({ map: T.bark, ...pbr("bark"), color: 0xc0b0a0 }));
-          shade.patch(fallbackBark, 2); foliage.patch(fallbackBark, 2);
-          for (const slot of [slots.hiT[0], slots.loT[0]]) if (slot) slot.mesh.material = fallbackBark;
-          for (const mat of [fallbackBark, leafMat, bark, leaves]) patchBirchLod(mat, false, cardNear, cardFar, cardFade);
-          // Mask shadow geometry too: no ghost tree shadows in the fade zone.
-          const fallbackLeafDepth = depth(leafMat.map!);
-          foliage.patch(fallbackLeafDepth, 1);
-          patchBirchLod(fallbackLeafDepth, false, cardNear, cardFar, cardFade);
-          if (slots.hiC[0]) slots.hiC[0].mesh.customDepthMaterial = fallbackLeafDepth;
-          patchBirchLod(leafShadow, false, cardNear, cardFar, cardFade);
-          const trunkShadow = track(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }));
-          foliage.patch(trunkShadow, 2);
-          patchBirchLod(trunkShadow, false, cardNear, cardFar, cardFade);
-          if (slots.hiT[0]) slots.hiT[0].mesh.customDepthMaterial = trunkShadow;
-          for (const slot of birchSlots) if (slot.bark) slot.bark.mesh.customDepthMaterial = trunkShadow;
+          if (!opts.allBirches) {
+            // Bark is shared by other species, so the broadleaf fallback needs
+            // its own material before adding the complementary dither mask.
+            const fallbackBark = track(new THREE.MeshStandardMaterial({ map: T.bark, ...pbr("bark"), color: 0xc0b0a0 }));
+            shade.patch(fallbackBark, 2); foliage.patch(fallbackBark, 2);
+            for (const slot of [slots.hiT[0], slots.loT[0]]) if (slot) slot.mesh.material = fallbackBark;
+            for (const mat of [fallbackBark, leafMat, bark, leaves]) patchBirchLod(mat, false, cardNear, cardFar, cardFade);
+            // Mask shadow geometry too: no ghost tree shadows in the fade zone.
+            const fallbackLeafDepth = depth(leafMat.map!);
+            foliage.patch(fallbackLeafDepth, 1);
+            patchBirchLod(fallbackLeafDepth, false, cardNear, cardFar, cardFade);
+            if (slots.hiC[0]) slots.hiC[0].mesh.customDepthMaterial = fallbackLeafDepth;
+            patchBirchLod(leafShadow, false, cardNear, cardFar, cardFade);
+            const trunkShadow = track(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }));
+            foliage.patch(trunkShadow, 2);
+            patchBirchLod(trunkShadow, false, cardNear, cardFar, cardFade);
+            if (slots.hiT[0]) slots.hiT[0].mesh.customDepthMaterial = trunkShadow;
+            for (const slot of birchSlots) if (slot.bark) slot.bark.mesh.customDepthMaterial = trunkShadow;
+          }
         }
       } catch (error) {
         console.warn("Local birch preview unavailable; retaining procedural trees", error);
       }
     }
+    if (opts.allBirches && !crossSlot) throw new Error("birch=all requires the local birch models and cross cards");
     const all = () => [...slots.hiT, ...slots.hiC, ...slots.loT, ...slots.loC, crossSlot, ...birchSlots.flatMap((s) => [s.bark, s.leaves])].filter((x): x is Slot => !!x);
     let last = { x: NaN, z: NaN, fx: 0, fz: 0, d: 0, c: 0 };
     refillTrees = (cam, fwd, detailR, cardR, force) => {
@@ -980,6 +983,14 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
               dd = dx * dx + dz * dz;
             if (dd > d2lo) continue;
             const t = tType[i];
+            // Experiment: every source instance is a birch, with the same
+            // spatial culling and fixed model budget. Overflow uses full-range
+            // cards; no generic fallback or distance-band discard in this mode.
+            if (opts.allBirches && crossSlot) {
+              if (dd < modelEnd ** 2) birchCandidates.push({ i, dd });
+              else put(crossSlot, i);
+              continue;
+            }
             // Keep both representations for 4 m beyond their shader bands:
             // the camera moves continuously but CPU sets refill every 4 m.
             if (crossSlot && t === 0 && dd >= (cardNear - cardFade / 2 - 4) ** 2 && dd < (cardFar + 4) ** 2) put(crossSlot, i);
@@ -1002,7 +1013,10 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
       let detailed = 0, simple = 0;
       for (const { i, dd } of birchCandidates) {
         const level = dd < 20 ** 2 && detailed < opts.quality.birchDetailCount ? 0 : simple < opts.quality.birchSimpleCount ? 1 : -1;
-        if (level < 0) { put(slots.hiT[0], i); put(slots.hiC[0], i); }
+        if (level < 0) {
+          if (opts.allBirches && crossSlot) put(crossSlot, i);
+          else { put(slots.hiT[0], i); put(slots.hiC[0], i); }
+        }
         else {
           put(birchSlots[level].bark, i); put(birchSlots[level].leaves, i);
           // The source is a young slender birch. Avoid stretching it into a

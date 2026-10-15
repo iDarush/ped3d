@@ -37,6 +37,7 @@ const props = withDefaults(
     /** opt-in prepared birch models for the local personal project */
     birchPreview?: boolean;
     birchCards?: boolean;
+    allBirches?: boolean;
     /** test mode: fixed animation time [s] (for reproducible frames / wind sequences) */
     timeS?: number;
   }>(),
@@ -207,7 +208,7 @@ onMounted(async () => {
   window.addEventListener("resize", resize);
 
   const base = props.scene.endsWith("/") ? props.scene : props.scene + "/";
-  const [hdr, b] = await Promise.all([new HDRLoader().loadAsync("scene-assets/sky.hdr"), loadProcScene(base, renderer, { quality: preset, birchPreview: props.birchPreview, birchCards: props.birchCards })]);
+  const [hdr, b] = await Promise.all([new HDRLoader().loadAsync("scene-assets/sky.hdr"), loadProcScene(base, renderer, { quality: preset, birchPreview: props.birchPreview, birchCards: props.birchCards, allBirches: props.allBirches })]);
   if (disposed) return;
   built = b;
   hdr.mapping = THREE.EquirectangularReflectionMapping;
