@@ -1,4 +1,21 @@
 import * as THREE from "three";
+import { BIRCH_FADE_SECONDS } from "./birchSelection";
+
+/** Per-instance temporal model coverage, complementary on its cross card. */
+export function patchBirchBlend(material: THREE.Material, card: boolean, time: THREE.IUniform<number>) {
+  const previous = material.onBeforeCompile, key = material.customProgramCacheKey();
+  material.onBeforeCompile = (shader, renderer) => {
+    previous.call(material, shader, renderer);
+    shader.uniforms.uBirchBlendTime = time;
+    shader.vertexShader = "attribute vec3 birchBlend;\nuniform float uBirchBlendTime;\nvarying float vBirchBlend;\n" + shader.vertexShader.replace("#include <begin_vertex>", `#include <begin_vertex>
+float bt = smoothstep(0.0, ${BIRCH_FADE_SECONDS.toFixed(3)}, uBirchBlendTime - birchBlend.z);
+vBirchBlend = mix(birchBlend.x, birchBlend.y, bt);`);
+    shader.fragmentShader = "varying float vBirchBlend;\n" + shader.fragmentShader.replace("#include <alphatest_fragment>", `#include <alphatest_fragment>
+float bn = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+${card ? "if (bn < vBirchBlend) discard;" : "if (bn >= vBirchBlend) discard;"}`);
+  };
+  material.customProgramCacheKey = () => key + `|birch-blend-${card}`;
+}
 
 const smooth = (a: number, b: number, x: number) => {
   const t = Math.max(0, Math.min(1, (x - a) / (b - a)));

@@ -8,7 +8,8 @@ import { createGrassField } from "./grassField";
 import type { QualityPreset } from "./quality";
 import { patchRoadSurface } from "./roadSurface";
 import { smoothRoad } from "./roadCurve";
-import { cardCoverage, patchBirchLod } from "./birchLod";
+import { BirchSelection, birchBlend } from "./birchSelection";
+import { cardCoverage, patchBirchLod, patchBirchBlend } from "./birchLod";
 
 export interface SceneData {
   name: string;
@@ -837,7 +838,16 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
       if (!c) cells.set(k, (c = []));
       c.push(i);
     }
-    type Slot = { mesh: THREE.InstancedMesh; n: number };
+    const blendTime = { value: 0 };
+    const selection = new BirchSelection([opts.quality.birchDetailCount, opts.quality.birchSimpleCount],
+      Math.min(opts.quality.detailR, opts.quality.birchCardNear + opts.quality.birchCardFade / 2));
+    type Slot = { mesh: THREE.InstancedMesh; n: number; blend?: THREE.InstancedBufferAttribute };
+    const addBlend = (slot: Slot | null) => {
+      if (!slot || !opts.allBirches) return;
+      slot.blend = new THREE.InstancedBufferAttribute(new Float32Array(slot.mesh.instanceMatrix.count * 3), 3);
+      slot.blend.setUsage(THREE.DynamicDrawUsage);
+      slot.mesh.geometry.setAttribute("birchBlend", slot.blend);
+    };
     const slots: { hiT: (Slot | null)[]; hiC: Slot[]; loT: (Slot | null)[]; loC: Slot[] } = { hiT: [], hiC: [], loT: [], loC: [] };
     const mkInst = (geo: THREE.BufferGeometry | null, mat: THREE.Material, type: number, crown: boolean, hi: boolean, capacity = perType[type]): Slot | null => {
       if (!geo || !perType[type]) return null;
@@ -867,6 +877,10 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
       if (!sl) return;
       (sl.mesh.instanceMatrix.array as Float32Array).set(tMat.subarray(i * 16, i * 16 + 16), sl.n * 16);
       if (sl.mesh.instanceColor) (sl.mesh.instanceColor.array as Float32Array).set(tCol.subarray(i * 3, i * 3 + 3), sl.n * 3);
+      if (sl.blend) {
+        const state = selection.states.get(i);
+        sl.blend.setXYZ(sl.n, state?.from ?? 0, state?.to ?? 0, state?.start ?? 0);
+      }
       sl.n++;
     };
     const birchSlots: { bark: Slot | null; leaves: Slot | null }[] = [];
@@ -885,13 +899,23 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
         shade.patch(bark, 2); shade.patch(leaves, 3);
         foliage.patch(bark, 2);
         foliage.patch(leaves, 1, { c: V(0, 0.65, 0), r: V(0.3, 0.4, 0.3) });
+        if (opts.allBirches) {
+          patchBirchBlend(bark, false, blendTime); patchBirchBlend(leaves, false, blendTime);
+        }
         const leafShadow = track(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: leaves.map, alphaTest: leaves.alphaTest, side: THREE.DoubleSide }));
         foliage.patch(leafShadow, 1);
+        if (opts.allBirches) patchBirchBlend(leafShadow, false, blendTime);
         for (const [level, lod] of birch.lods.entries()) {
           const capacity = level === 0 ? opts.quality.birchDetailCount : opts.quality.birchSimpleCount;
           const b = mkInst(lod.bark.geometry, bark, 0, false, true, capacity);
           const l = mkInst(lod.leaves.geometry, leaves, 0, true, true, capacity);
+          addBlend(b); addBlend(l);
           if (l) l.mesh.customDepthMaterial = leafShadow;
+          if (opts.allBirches && b) {
+            const barkDepth = track(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }));
+            foliage.patch(barkDepth, 2); patchBirchBlend(barkDepth, false, blendTime);
+            b.mesh.customDepthMaterial = barkDepth;
+          }
           for (const slot of [b, l]) {
             if (!slot) continue;
             slot.mesh.castShadow = opts.quality.shadows && opts.quality.birchShadows;
@@ -920,8 +944,10 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
             shader.fragmentShader = shader.fragmentShader.replace("#include <lights_fragment_begin>",
               "#include <lights_fragment_begin>\nreflectedLight.indirectDiffuse += diffuseColor.rgb * 0.25;");
           };
-          if (!opts.allBirches) patchBirchLod(cardMat, true, cardNear, cardFar, cardFade);
+          if (opts.allBirches) patchBirchBlend(cardMat, true, blendTime);
+          else patchBirchLod(cardMat, true, cardNear, cardFar, cardFade);
           crossSlot = mkInst(birch.card.geometry, cardMat, 0, true, false);
+          addBlend(crossSlot);
           if (crossSlot) { crossSlot.mesh.castShadow = false; crossSlot.mesh.receiveShadow = false; }
           if (!opts.allBirches) {
             // Bark is shared by other species, so the broadleaf fallback needs
@@ -949,11 +975,21 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     }
     if (opts.allBirches && !crossSlot) throw new Error("birch=all requires the local birch models and cross cards");
     const all = () => [...slots.hiT, ...slots.hiC, ...slots.loT, ...slots.loC, crossSlot, ...birchSlots.flatMap((s) => [s.bark, s.leaves])].filter((x): x is Slot => !!x);
+    // Cell centres do not bound crowns: pad each cell by its widest instance.
+    const cellPadding = new Map<number, number>();
+    for (const [key, ids] of cells) {
+      let extent = 0;
+      for (const i of ids) extent = Math.max(extent, Math.hypot(tMat[i * 16], tMat[i * 16 + 2]) * 1.1);
+      cellPadding.set(key, CELL * 0.71 + extent + 4);
+    }
     let last = { x: NaN, z: NaN, fx: 0, fz: 0, d: 0, c: 0 };
     refillTrees = (cam, fwd, detailR, cardR, force) => {
+      const now = performance.now() / 1000;
+      blendTime.value = now;
+      const releasedSlot = opts.allBirches && [...selection.states.values()].some(s => s.to === 0 && birchBlend(s, now) === 0);
       const moved = Math.hypot(cam.x - last.x, cam.z - last.z);
       const turned = fwd.x * last.fx + fwd.z * last.fz;
-      if (!force && moved < 4 && turned > 0.985 && Math.abs(detailR - last.d) < 3 && Math.abs(cardR - last.c) < 6) return;
+      if (!force && !releasedSlot && moved < 4 && turned > 0.985 && Math.abs(detailR - last.d) < 3 && Math.abs(cardR - last.c) < 6) return;
       last = { x: cam.x, z: cam.z, fx: fwd.x, fz: fwd.z, d: detailR, c: cardR };
       for (const sl of all()) sl.n = 0;
       const fl = Math.hypot(fwd.x, fwd.z) || 1,
@@ -965,18 +1001,21 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
       const d2hi = detailR * detailR,
         d2lo = cardR * cardR;
       const birchCandidates: { i: number; dd: number }[] = [];
+      const allBirchIds: number[] = [];
       for (let a = -r; a <= r; a++)
         for (let b = -r; b <= r; b++) {
-          const ids = cells.get(cellKey(ci0 + a, cj0 + b));
+          const key = cellKey(ci0 + a, cj0 + b);
+          const ids = cells.get(key);
           if (!ids) continue;
           const cx = (ci0 + a + 0.5) * CELL - cam.x,
             cz = (cj0 + b + 0.5) * CELL - cam.z,
             cd = Math.hypot(cx, cz);
-          if (cd - CELL * 0.71 > cardR) continue;
+          const cellRadius = cellPadding.get(key)!;
+          if (cd - cellRadius > cardR) continue;
           // view cone: ±75° around the heading (the horizontal FOV is ~±50°), generous so turning does not pop
-          if (cd > 45 && (cx * fx + cz * fz + CELL * 0.71) / cd < 0.26) continue;
+          if (cd > 45 + cellRadius && (cx * fx + cz * fz + cellRadius) / cd < 0.26) continue;
           // fully hidden by forest fog in this direction (deep inside a forest)
-          if (fogged(cx, cz, CELL * 0.71)) continue;
+          if (fogged(cx, cz, cellRadius)) continue;
           for (const i of ids) {
             const dx = tMat[i * 16 + 12] - cam.x,
               dz = tMat[i * 16 + 14] - cam.z,
@@ -987,8 +1026,8 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
             // spatial culling and fixed model budget. Overflow uses full-range
             // cards; no generic fallback or distance-band discard in this mode.
             if (opts.allBirches && crossSlot) {
-              if (dd < modelEnd ** 2) birchCandidates.push({ i, dd });
-              else put(crossSlot, i);
+              allBirchIds.push(i);
+              if (dd < (modelEnd + 10) ** 2) birchCandidates.push({ i, dd });
               continue;
             }
             // Keep both representations for 4 m beyond their shader bands:
@@ -1009,10 +1048,22 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
             }
           }
         }
+      if (opts.allBirches && crossSlot) {
+        selection.update(birchCandidates, now);
+        // Cards share exactly the model's blend, including when a slot exits.
+        const visible = new Set(allBirchIds);
+        for (const i of selection.states.keys()) visible.add(i);
+        for (const i of visible) {
+          const state = selection.states.get(i);
+          if (!state || birchBlend(state, now) < 1 || state.to === 0) put(crossSlot, i);
+        }
+        birchCandidates.length = 0;
+        for (const [i] of selection.states) birchCandidates.push({ i, dd: 0 });
+      }
       birchCandidates.sort((a, b) => a.dd - b.dd || a.i - b.i);
       let detailed = 0, simple = 0;
       for (const { i, dd } of birchCandidates) {
-        const level = dd < 20 ** 2 && detailed < opts.quality.birchDetailCount ? 0 : simple < opts.quality.birchSimpleCount ? 1 : -1;
+        const level = opts.allBirches ? selection.states.get(i)!.level : dd < 20 ** 2 && detailed < opts.quality.birchDetailCount ? 0 : simple < opts.quality.birchSimpleCount ? 1 : -1;
         if (level < 0) {
           if (opts.allBirches && crossSlot) put(crossSlot, i);
           else { put(slots.hiT[0], i); put(slots.hiC[0], i); }
@@ -1042,6 +1093,9 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
           m.instanceColor.clearUpdateRanges();
           m.instanceColor.addUpdateRange(0, sl.n * 3);
           m.instanceColor.needsUpdate = true;
+        }
+        if (sl.blend) {
+          sl.blend.clearUpdateRanges(); sl.blend.addUpdateRange(0, sl.n * 3); sl.blend.needsUpdate = true;
         }
         m.visible = sl.n > 0;
       }
