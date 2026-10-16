@@ -1,0 +1,27 @@
+<!doctype html><html><body style="margin:0"><pre id="log"></pre><img id="shot">
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
+const log = (...a) => document.getElementById('log').textContent += a.join(' ') + '\n';
+try {
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); renderer.setSize(1000, 500); document.body.appendChild(renderer.domElement);
+  const ktx2 = new KTX2Loader().setTranscoderPath('./node_modules/three/examples/jsm/libs/basis/').detectSupport(renderer);
+  const loader = new GLTFLoader().setKTX2Loader(ktx2);
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x9fb4cc);
+  scene.add(new THREE.HemisphereLight(0xdde8ff, 0x554433, 1.4)); const sun = new THREE.DirectionalLight(0xffffff, 2); sun.position.set(-5, 8, 6); scene.add(sun);
+  const names = ['birch_card_billboard', 'birch_card_cross', 'birch_card_3plane', 'understory_card_cross'];
+  let x = -4.5;
+  for (const n of names) {
+    const g = await loader.loadAsync(`../cards/${n}.glb`); let tris = 0, info = '';
+    g.scene.traverse(o => { if (o.isMesh) { tris += o.geometry.index.count / 3; const m = o.material;
+      info = `alphaTest=${m.alphaTest} side=${m.side} map=${m.map?.isCompressedTexture}/${m.map?.image.width}x${m.map?.image.height} normalMap=${m.normalMap?.isCompressedTexture}/${m.normalMap?.image.width}`; } });
+    const box = new THREE.Box3().setFromObject(g.scene);
+    log(n, 'tris=' + tris, info, 'bbox', box.min.toArray().map(v => v.toFixed(3)).join(','), '..', box.max.toArray().map(v => v.toFixed(3)).join(','));
+    const s = n.startsWith('under') ? 1.5 : 3; g.scene.scale.setScalar(s); g.scene.position.x = x; g.scene.rotation.y = 0.5; x += 3; scene.add(g.scene);
+  }
+  const cam = new THREE.PerspectiveCamera(40, 2, 0.1, 100); cam.position.set(0, 1.8, 9); cam.lookAt(0, 1.4, 0);
+  renderer.render(scene, cam); document.getElementById('shot').src = renderer.domElement.toDataURL('image/png'); log('OK');
+} catch (e) { log('ERROR', e.stack || e); }
+</script></body></html>

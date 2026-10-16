@@ -1,0 +1,23 @@
+{
+ "maple_cards_color": {
+  "codec": "ETC1S RGBA sRGB, coverage-preserving mips",
+  "mask_IoU_mip0": 0.9818,
+  "coverage_src": 0.2625,
+  "coverage_ktx2": 0.262,
+  "rgb_psnr_db": 31.6,
+  "coverage_per_mip_0_6": [
+   0.262,
+   0.2635,
+   0.2643,
+   0.269,
+   0.2692,
+   0.27,
+   0.2829
+  ]
+ },
+ "maple_cards_normal": {
+  "codec": "UASTC q3 RDO1.0 zstd18, linear, 632^2",
+  "angular_err_deg_mean": 2.52,
+  "p99": 13.27
+ }
+}

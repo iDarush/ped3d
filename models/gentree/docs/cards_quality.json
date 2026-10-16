@@ -1,0 +1,23 @@
+{
+ "gentree_cards_color": {
+  "codec": "ETC1S RGBA sRGB, coverage-preserving mips",
+  "mask_IoU_mip0": 0.888,
+  "coverage_src": 0.0548,
+  "coverage_ktx2": 0.0536,
+  "rgb_psnr_db": 28.5,
+  "coverage_per_mip_0_6": [
+   0.0536,
+   0.0542,
+   0.0539,
+   0.0559,
+   0.0542,
+   0.0554,
+   0.0527
+  ]
+ },
+ "gentree_cards_normal": {
+  "codec": "UASTC q3 RDO1.0 zstd18, linear, 1024^2",
+  "angular_err_deg_mean": 1.69,
+  "p99": 13.07
+ }
+}

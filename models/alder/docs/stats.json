@@ -1,0 +1,396 @@
+{
+ "warnings": [],
+ "textures": {
+  "bark_color.jpg": [
+   1024,
+   1024
+  ],
+  "bark_normal.png": [
+   1024,
+   1024
+  ],
+  "bark_rough.png": [
+   1024,
+   1024
+  ],
+  "foliage_color.png": [
+   1024,
+   1024
+  ],
+  "foliage_normal.png": [
+   1024,
+   1024
+  ]
+ },
+ "name": "alder",
+ "models": {
+  "a": {
+   "blend": "MT_PM_V60_Alnus_cremastogyne_01_04.blend",
+   "relinked": 10,
+   "missing_images_ignored": [
+    "mt_pm_v60_alnus_cremastogyne_01_leaf_01_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Alnus_cremastogyne_01_Leaf_01",
+    "MT_PM_V60_Alnus_cremastogyne_01_Petiole_01",
+    "MT_PM_V60_Alnus_cremastogyne_01_Trunk_01"
+   ],
+   "tris_by_role": {
+    "bark": 363111,
+    "twig": 99782,
+    "leaf": 401429
+   },
+   "tris": 864322,
+   "bark_components_kept": 84,
+   "bark_components_to_twigs": 10363,
+   "origin_shift_m": [
+    -0.0039,
+    -0.0125,
+    0.0
+   ],
+   "height_m": 14.548,
+   "below_ground_m": 0.0,
+   "width_m": [
+    8.64,
+    8.55
+   ],
+   "bark_source_tris": 54643,
+   "bark_limbs": 84,
+   "lod1_limbs_dropped": 83,
+   "bark_protect_scale": {
+    "lod0": 1.0,
+    "lod1": 1.0
+   },
+   "clusters_small": {
+    "k": 450,
+    "leaf_tris_per_cluster_median": 869,
+    "twig_tris_assigned": 408250,
+    "twig_tris_total": 408250
+   },
+   "clusters_large": {
+    "k": 160,
+    "leaf_tris_per_cluster_median": 2308,
+    "twig_tris_assigned": 408250,
+    "twig_tris_total": 408250
+   },
+   "foliage_cards": {
+    "lod0": 900,
+    "lod1": 320
+   }
+  },
+  "b": {
+   "blend": "MT_PM_V60_Alnus_cremastogyne_01_02.blend",
+   "relinked": 10,
+   "missing_images_ignored": [
+    "mt_pm_v60_alnus_cremastogyne_01_leaf_01_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Alnus_cremastogyne_01_Leaf_01",
+    "MT_PM_V60_Alnus_cremastogyne_01_Petiole_01",
+    "MT_PM_V60_Alnus_cremastogyne_01_Trunk_01"
+   ],
+   "tris_by_role": {
+    "bark": 465693,
+    "twig": 126366,
+    "leaf": 508303
+   },
+   "tris": 1100362,
+   "bark_components_kept": 90,
+   "bark_components_to_twigs": 13165,
+   "origin_shift_m": [
+    -0.0578,
+    -0.0428,
+    0.0
+   ],
+   "height_m": 10.594,
+   "below_ground_m": 0.263,
+   "width_m": [
+    9.06,
+    8.6
+   ],
+   "bark_source_tris": 70961,
+   "bark_limbs": 90,
+   "lod1_limbs_dropped": 81,
+   "bark_protect_scale": {
+    "lod0": 0.6,
+    "lod1": 0.6
+   },
+   "clusters_small": {
+    "k": 450,
+    "leaf_tris_per_cluster_median": 1095,
+    "twig_tris_assigned": 521062,
+    "twig_tris_total": 521098
+   },
+   "clusters_large": {
+    "k": 160,
+    "leaf_tris_per_cluster_median": 3153,
+    "twig_tris_assigned": 521098,
+    "twig_tris_total": 521098
+   },
+   "foliage_cards": {
+    "lod0": 900,
+    "lod1": 320
+   }
+  }
+ },
+ "bark_roughness_range": [
+  0.686,
+  0.822,
+  0.935,
+  0.748,
+  0.902
+ ],
+ "foliage_atlas": {
+  "from_model": "a",
+  "templates": [
+   {
+    "tag": "small",
+    "id": "small0",
+    "cluster": 416,
+    "w_m": 0.897,
+    "h_m": 0.981,
+    "src_W": 0.917,
+    "src_H": 0.978,
+    "leaf_tris": 888,
+    "opaque_frac": 0.302,
+    "px": [
+     608,
+     0,
+     308,
+     337
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small1",
+    "cluster": 15,
+    "w_m": 1.194,
+    "h_m": 0.96,
+    "src_W": 1.192,
+    "src_H": 0.956,
+    "leaf_tris": 975,
+    "opaque_frac": 0.247,
+    "px": [
+     686,
+     685,
+     337,
+     271
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small2",
+    "cluster": 364,
+    "w_m": 1.12,
+    "h_m": 1.059,
+    "src_W": 1.113,
+    "src_H": 1.053,
+    "leaf_tris": 1007,
+    "opaque_frac": 0.364,
+    "px": [
+     319,
+     345,
+     338,
+     320
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small3",
+    "cluster": 396,
+    "w_m": 0.755,
+    "h_m": 0.647,
+    "src_W": 0.755,
+    "src_H": 0.649,
+    "leaf_tris": 811,
+    "opaque_frac": 0.394,
+    "px": [
+     0,
+     685,
+     336,
+     288
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small4",
+    "cluster": 289,
+    "w_m": 0.896,
+    "h_m": 0.957,
+    "src_W": 0.892,
+    "src_H": 0.963,
+    "leaf_tris": 830,
+    "opaque_frac": 0.281,
+    "px": [
+     0,
+     345,
+     313,
+     334
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small5",
+    "cluster": 110,
+    "w_m": 0.844,
+    "h_m": 0.753,
+    "src_W": 0.84,
+    "src_H": 0.761,
+    "leaf_tris": 863,
+    "opaque_frac": 0.532,
+    "px": [
+     663,
+     345,
+     337,
+     301
+    ]
+   },
+   {
+    "tag": "large",
+    "id": "large0",
+    "cluster": 66,
+    "w_m": 1.568,
+    "h_m": 1.662,
+    "src_W": 1.557,
+    "src_H": 1.649,
+    "leaf_tris": 2113,
+    "opaque_frac": 0.312,
+    "px": [
+     0,
+     0,
+     320,
+     339
+    ]
+   },
+   {
+    "tag": "large",
+    "id": "large1",
+    "cluster": 108,
+    "w_m": 1.285,
+    "h_m": 1.571,
+    "src_W": 1.275,
+    "src_H": 1.561,
+    "leaf_tris": 2655,
+    "opaque_frac": 0.464,
+    "px": [
+     326,
+     0,
+     276,
+     338
+    ]
+   },
+   {
+    "tag": "large",
+    "id": "large2",
+    "cluster": 133,
+    "w_m": 1.569,
+    "h_m": 1.296,
+    "src_W": 1.56,
+    "src_H": 1.282,
+    "leaf_tris": 2128,
+    "opaque_frac": 0.348,
+    "px": [
+     342,
+     685,
+     338,
+     279
+    ]
+   }
+  ],
+  "atlas_opaque_fraction": 0.309,
+  "size": [
+   1024,
+   1024
+  ]
+ },
+ "lods": {
+  "a_lod0": {
+   "bark_tris": 2418,
+   "foliage_tris": 1800,
+   "total_tris": 4218,
+   "verts": 5067,
+   "bbox_blender_zup": [
+    [
+     -4.228,
+     -4.401,
+     0.0
+    ],
+    [
+     4.75,
+     4.095,
+     14.76
+    ]
+   ],
+   "glb_bytes": 6650332
+  },
+  "a_lod1": {
+   "bark_tris": 600,
+   "foliage_tris": 640,
+   "total_tris": 1240,
+   "verts": 1589,
+   "bbox_blender_zup": [
+    [
+     -4.096,
+     -4.39,
+     0.0
+    ],
+    [
+     4.694,
+     4.076,
+     14.64
+    ]
+   ],
+   "glb_bytes": 6431812
+  },
+  "b_lod0": {
+   "bark_tris": 2422,
+   "foliage_tris": 1800,
+   "total_tris": 4222,
+   "verts": 5084,
+   "bbox_blender_zup": [
+    [
+     -4.43,
+     -3.766,
+     -0.278
+    ],
+    [
+     4.668,
+     4.755,
+     10.717
+    ]
+   ],
+   "glb_bytes": 6660432
+  },
+  "b_lod1": {
+   "bark_tris": 612,
+   "foliage_tris": 640,
+   "total_tris": 1252,
+   "verts": 1616,
+   "bbox_blender_zup": [
+    [
+     -4.409,
+     -3.953,
+     -0.278
+    ],
+    [
+     4.483,
+     4.64,
+     10.803
+    ]
+   ],
+   "glb_bytes": 6444504
+  }
+ },
+ "materials": [
+  "bark",
+  "foliage"
+ ],
+ "roughness": {
+  "bark": "texture",
+  "foliage": 0.658
+ },
+ "source": {
+  "a": "MT_PM_V60_Alnus_cremastogyne_01_04.blend",
+  "b": "MT_PM_V60_Alnus_cremastogyne_01_02.blend"
+ }
+}

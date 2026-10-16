@@ -1,0 +1,379 @@
+{
+ "warnings": [],
+ "textures": {
+  "bark_color.jpg": [
+   512,
+   512
+  ],
+  "bark_normal.png": [
+   512,
+   512
+  ],
+  "bark_rough.png": [
+   512,
+   512
+  ],
+  "foliage_color.png": [
+   512,
+   512
+  ],
+  "foliage_normal.png": [
+   512,
+   512
+  ]
+ },
+ "name": "abelia",
+ "models": {
+  "a": {
+   "blend": "MT_PM_V60_Abelia_grandiflora_01_03.blend",
+   "relinked": 10,
+   "missing_images_ignored": [
+    "mt_pm_v60_abelia_grandiflora_01_leaf_01_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Abelia_grandiflora_01_Leaf_01",
+    "MT_PM_V60_Abelia_grandiflora_01_Petiole_01",
+    "MT_PM_V60_Abelia_grandiflora_01_Trunk_01"
+   ],
+   "tris_by_role": {
+    "bark": 78204,
+    "leaf": 124824,
+    "twig": 137390
+   },
+   "tris": 340418,
+   "bark_components_kept": 11,
+   "bark_components_to_twigs": 232,
+   "origin_shift_m": [
+    -0.0206,
+    -0.0021,
+    0.0
+   ],
+   "height_m": 1.448,
+   "below_ground_m": 0.004,
+   "width_m": [
+    1.38,
+    1.32
+   ],
+   "bark_source_tris": 9648,
+   "bark_limbs": 11,
+   "lod1_limbs_dropped": 4,
+   "bark_protect_scale": {
+    "lod0": 0.6,
+    "lod1": 0.6
+   },
+   "clusters_small": {
+    "k": 220,
+    "leaf_tris_per_cluster_median": 543,
+    "twig_tris_assigned": 204679,
+    "twig_tris_total": 205946
+   },
+   "clusters_large": {
+    "k": 100,
+    "leaf_tris_per_cluster_median": 1259,
+    "twig_tris_assigned": 205523,
+    "twig_tris_total": 205946
+   },
+   "foliage_cards": {
+    "lod0": 440,
+    "lod1": 200
+   }
+  },
+  "b": {
+   "blend": "MT_PM_V60_Abelia_grandiflora_01_04.blend",
+   "relinked": 10,
+   "missing_images_ignored": [
+    "mt_pm_v60_abelia_grandiflora_01_leaf_01_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Abelia_grandiflora_01_Leaf_01",
+    "MT_PM_V60_Abelia_grandiflora_01_Petiole_01",
+    "MT_PM_V60_Abelia_grandiflora_01_Trunk_01"
+   ],
+   "tris_by_role": {
+    "bark": 120408,
+    "leaf": 210952,
+    "twig": 129400
+   },
+   "tris": 460760,
+   "bark_components_kept": 16,
+   "bark_components_to_twigs": 688,
+   "origin_shift_m": [
+    -0.0167,
+    -0.0068,
+    0.0
+   ],
+   "height_m": 1.186,
+   "below_ground_m": 0.004,
+   "width_m": [
+    1.49,
+    1.47
+   ],
+   "bark_source_tris": 14316,
+   "bark_limbs": 16,
+   "lod1_limbs_dropped": 11,
+   "bark_protect_scale": {
+    "lod0": 0.6,
+    "lod1": 0.6
+   },
+   "clusters_small": {
+    "k": 220,
+    "leaf_tris_per_cluster_median": 912,
+    "twig_tris_assigned": 227779,
+    "twig_tris_total": 235492
+   },
+   "clusters_large": {
+    "k": 100,
+    "leaf_tris_per_cluster_median": 2067,
+    "twig_tris_assigned": 229454,
+    "twig_tris_total": 235492
+   },
+   "foliage_cards": {
+    "lod0": 440,
+    "lod1": 200
+   }
+  }
+ },
+ "bark_roughness_range": [
+  0.398,
+  0.805,
+  0.976,
+  0.696,
+  0.893
+ ],
+ "foliage_atlas": {
+  "from_model": "a",
+  "templates": [
+   {
+    "tag": "small",
+    "id": "small0",
+    "cluster": 103,
+    "w_m": 0.163,
+    "h_m": 0.208,
+    "src_W": 0.164,
+    "src_H": 0.207,
+    "leaf_tris": 484,
+    "opaque_frac": 0.338,
+    "px": [
+     0,
+     0,
+     138,
+     176
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small1",
+    "cluster": 178,
+    "w_m": 0.192,
+    "h_m": 0.199,
+    "src_W": 0.194,
+    "src_H": 0.202,
+    "leaf_tris": 564,
+    "opaque_frac": 0.294,
+    "px": [
+     0,
+     182,
+     167,
+     173
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small2",
+    "cluster": 30,
+    "w_m": 0.222,
+    "h_m": 0.179,
+    "src_W": 0.225,
+    "src_H": 0.181,
+    "leaf_tris": 532,
+    "opaque_frac": 0.338,
+    "px": [
+     0,
+     361,
+     173,
+     140
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small3",
+    "cluster": 26,
+    "w_m": 0.22,
+    "h_m": 0.17,
+    "src_W": 0.222,
+    "src_H": 0.171,
+    "leaf_tris": 540,
+    "opaque_frac": 0.329,
+    "px": [
+     179,
+     361,
+     174,
+     134
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small4",
+    "cluster": 162,
+    "w_m": 0.193,
+    "h_m": 0.209,
+    "src_W": 0.195,
+    "src_H": 0.216,
+    "leaf_tris": 570,
+    "opaque_frac": 0.381,
+    "px": [
+     355,
+     182,
+     157,
+     170
+    ]
+   },
+   {
+    "tag": "large",
+    "id": "large0",
+    "cluster": 15,
+    "w_m": 0.273,
+    "h_m": 0.269,
+    "src_W": 0.273,
+    "src_H": 0.271,
+    "leaf_tris": 1290,
+    "opaque_frac": 0.415,
+    "px": [
+     173,
+     182,
+     176,
+     173
+    ]
+   },
+   {
+    "tag": "large",
+    "id": "large1",
+    "cluster": 28,
+    "w_m": 0.285,
+    "h_m": 0.298,
+    "src_W": 0.29,
+    "src_H": 0.296,
+    "leaf_tris": 1173,
+    "opaque_frac": 0.306,
+    "px": [
+     144,
+     0,
+     169,
+     176
+    ]
+   },
+   {
+    "tag": "large",
+    "id": "large2",
+    "cluster": 72,
+    "w_m": 0.275,
+    "h_m": 0.308,
+    "src_W": 0.281,
+    "src_H": 0.31,
+    "leaf_tris": 1369,
+    "opaque_frac": 0.315,
+    "px": [
+     319,
+     0,
+     156,
+     175
+    ]
+   }
+  ],
+  "atlas_opaque_fraction": 0.279,
+  "size": [
+   512,
+   512
+  ]
+ },
+ "lods": {
+  "a_lod0": {
+   "bark_tris": 507,
+   "foliage_tris": 880,
+   "total_tris": 1387,
+   "verts": 2049,
+   "bbox_blender_zup": [
+    [
+     -0.703,
+     -0.63,
+     -0.004
+    ],
+    [
+     0.705,
+     0.68,
+     1.437
+    ]
+   ],
+   "glb_bytes": 1624280
+  },
+  "a_lod1": {
+   "bark_tris": 120,
+   "foliage_tris": 400,
+   "total_tris": 520,
+   "verts": 881,
+   "bbox_blender_zup": [
+    [
+     -0.714,
+     -0.634,
+     -0.004
+    ],
+    [
+     0.676,
+     0.677,
+     1.44
+    ]
+   ],
+   "glb_bytes": 1559352
+  },
+  "b_lod0": {
+   "bark_tris": 502,
+   "foliage_tris": 880,
+   "total_tris": 1382,
+   "verts": 2059,
+   "bbox_blender_zup": [
+    [
+     -0.741,
+     -0.757,
+     -0.002
+    ],
+    [
+     0.769,
+     0.735,
+     1.194
+    ]
+   ],
+   "glb_bytes": 1628308
+  },
+  "b_lod1": {
+   "bark_tris": 120,
+   "foliage_tris": 400,
+   "total_tris": 520,
+   "verts": 875,
+   "bbox_blender_zup": [
+    [
+     -0.738,
+     -0.772,
+     -0.002
+    ],
+    [
+     0.766,
+     0.767,
+     1.233
+    ]
+   ],
+   "glb_bytes": 1559524
+  }
+ },
+ "materials": [
+  "bark",
+  "foliage"
+ ],
+ "roughness": {
+  "bark": "texture",
+  "foliage": 0.654
+ },
+ "source": {
+  "a": "MT_PM_V60_Abelia_grandiflora_01_03.blend",
+  "b": "MT_PM_V60_Abelia_grandiflora_01_04.blend"
+ }
+}

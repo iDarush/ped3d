@@ -1,0 +1,229 @@
+{
+ "warnings": [],
+ "textures": {
+  "foliage_color.png": [
+   512,
+   512
+  ],
+  "foliage_normal.png": [
+   512,
+   512
+  ]
+ },
+ "name": "lolium",
+ "models": {
+  "a": {
+   "blend": "MT_PM_V60_Lolium_perenne_01_04.blend",
+   "relinked": 4,
+   "missing_images_ignored": [
+    "mt_pm_v60_lolium_perenne_01_leaf_01_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Lolium_perenne_01_Leaf_01"
+   ],
+   "tris_by_role": {
+    "leaf": 26796
+   },
+   "tris": 26796,
+   "origin_shift_m": [
+    -0.0257,
+    0.0422,
+    0.0
+   ],
+   "height_m": 0.469,
+   "below_ground_m": 0.107,
+   "width_m": [
+    0.96,
+    0.87
+   ],
+   "foliage_cards": {
+    "lod0": 3
+   }
+  },
+  "b": {
+   "blend": "MT_PM_V60_Lolium_perenne_01_06.blend",
+   "relinked": 4,
+   "missing_images_ignored": [
+    "mt_pm_v60_lolium_perenne_01_leaf_01_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Lolium_perenne_01_Leaf_01"
+   ],
+   "tris_by_role": {
+    "leaf": 50272
+   },
+   "tris": 50272,
+   "origin_shift_m": [
+    0.0007,
+    0.0004,
+    0.0
+   ],
+   "height_m": 0.276,
+   "below_ground_m": 0.058,
+   "width_m": [
+    0.86,
+    0.85
+   ],
+   "foliage_cards": {
+    "lod0": 3
+   }
+  }
+ },
+ "foliage_atlas": {
+  "from_model": "all",
+  "templates": [
+   {
+    "tag": "star",
+    "id": "a0",
+    "model": "a",
+    "w_m": 0.84,
+    "h_m": 0.474,
+    "src_W": 0.994,
+    "src_H": 0.469,
+    "opaque_frac": 0.452,
+    "px": [
+     0,
+     0,
+     243,
+     137
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "a1",
+    "model": "a",
+    "w_m": 0.832,
+    "h_m": 0.461,
+    "src_W": 0.901,
+    "src_H": 0.469,
+    "opaque_frac": 0.434,
+    "px": [
+     0,
+     143,
+     266,
+     147
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "a2",
+    "model": "a",
+    "w_m": 0.844,
+    "h_m": 0.474,
+    "src_W": 1.011,
+    "src_H": 0.469,
+    "opaque_frac": 0.4,
+    "px": [
+     249,
+     0,
+     240,
+     135
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "b0",
+    "model": "b",
+    "w_m": 0.757,
+    "h_m": 0.261,
+    "src_W": 0.908,
+    "src_H": 0.276,
+    "opaque_frac": 0.493,
+    "px": [
+     272,
+     143,
+     240,
+     83
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "b1",
+    "model": "b",
+    "w_m": 0.732,
+    "h_m": 0.278,
+    "src_W": 0.766,
+    "src_H": 0.276,
+    "opaque_frac": 0.464,
+    "px": [
+     0,
+     296,
+     275,
+     104
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "b2",
+    "model": "b",
+    "w_m": 0.816,
+    "h_m": 0.277,
+    "src_W": 0.881,
+    "src_H": 0.276,
+    "opaque_frac": 0.429,
+    "px": [
+     0,
+     407,
+     266,
+     90
+    ]
+   }
+  ],
+  "atlas_opaque_fraction": 0.298,
+  "size": [
+   512,
+   512
+  ]
+ },
+ "lods": {
+  "a_lod0": {
+   "bark_tris": 0,
+   "foliage_tris": 6,
+   "total_tris": 6,
+   "verts": 12,
+   "bbox_blender_zup": [
+    [
+     -0.436,
+     -0.375,
+     0.0
+    ],
+    [
+     0.404,
+     0.364,
+     0.466
+    ]
+   ],
+   "glb_bytes": 824896
+  },
+  "b_lod0": {
+   "bark_tris": 0,
+   "foliage_tris": 6,
+   "total_tris": 6,
+   "verts": 12,
+   "bbox_blender_zup": [
+    [
+     -0.376,
+     -0.364,
+     0.0
+    ],
+    [
+     0.381,
+     0.343,
+     0.273
+    ]
+   ],
+   "glb_bytes": 824896
+  }
+ },
+ "materials": [
+  "foliage"
+ ],
+ "roughness": {
+  "bark": null,
+  "foliage": 0.695
+ },
+ "source": {
+  "a": "MT_PM_V60_Lolium_perenne_01_04.blend",
+  "b": "MT_PM_V60_Lolium_perenne_01_06.blend"
+ }
+}

@@ -1,0 +1,23 @@
+{
+ "abelia_cards_color": {
+  "codec": "ETC1S RGBA sRGB, coverage-preserving mips",
+  "mask_IoU_mip0": 0.9873,
+  "coverage_src": 0.3204,
+  "coverage_ktx2": 0.3201,
+  "rgb_psnr_db": 35.6,
+  "coverage_per_mip_0_6": [
+   0.3201,
+   0.3204,
+   0.3206,
+   0.3134,
+   0.3125,
+   0.3527,
+   0.5
+  ]
+ },
+ "abelia_cards_normal": {
+  "codec": "UASTC q3 RDO1.0 zstd18, linear, 232^2",
+  "angular_err_deg_mean": 3.16,
+  "p99": 13.05
+ }
+}

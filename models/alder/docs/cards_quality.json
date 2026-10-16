@@ -1,0 +1,23 @@
+{
+ "alder_cards_color": {
+  "codec": "ETC1S RGBA sRGB, coverage-preserving mips",
+  "mask_IoU_mip0": 0.9817,
+  "coverage_src": 0.3143,
+  "coverage_ktx2": 0.3138,
+  "rgb_psnr_db": 32.6,
+  "coverage_per_mip_0_6": [
+   0.3138,
+   0.3149,
+   0.3156,
+   0.3145,
+   0.3147,
+   0.3118,
+   0.3125
+  ]
+ },
+ "alder_cards_normal": {
+  "codec": "UASTC q3 RDO1.0 zstd18, linear, 768^2",
+  "angular_err_deg_mean": 2.95,
+  "p99": 15.02
+ }
+}

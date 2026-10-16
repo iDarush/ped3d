@@ -1,0 +1,15 @@
+{
+ "foliage_color": {
+  "psnr_db": 31.2,
+  "mask_IoU": 0.976,
+  "coverage_mip0_2_4": [
+   0.2977,
+   0.2975,
+   0.3184
+  ]
+ },
+ "foliage_normal": {
+  "angular_err_deg_mean": 2.45,
+  "p99": 13.2
+ }
+}

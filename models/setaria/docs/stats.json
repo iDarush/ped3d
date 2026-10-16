@@ -1,0 +1,229 @@
+{
+ "warnings": [],
+ "textures": {
+  "foliage_color.png": [
+   1024,
+   1024
+  ],
+  "foliage_normal.png": [
+   1024,
+   1024
+  ]
+ },
+ "name": "setaria",
+ "models": {
+  "a": {
+   "blend": "MT_PM_V60_Setaria_viridis_beauv_01_06.blend",
+   "relinked": 4,
+   "missing_images_ignored": [
+    "mt_pm_v60_setaria_viridis_beauv_01_leaf_01_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Setaria_viridis_beauv_01_Leaf_01"
+   ],
+   "tris_by_role": {
+    "leaf": 6043
+   },
+   "tris": 6043,
+   "origin_shift_m": [
+    0.0216,
+    0.0145,
+    0.0
+   ],
+   "height_m": 0.283,
+   "below_ground_m": 0.001,
+   "width_m": [
+    0.26,
+    0.25
+   ],
+   "foliage_cards": {
+    "lod0": 3
+   }
+  },
+  "b": {
+   "blend": "MT_PM_V60_Setaria_viridis_beauv_01_03.blend",
+   "relinked": 4,
+   "missing_images_ignored": [
+    "mt_pm_v60_setaria_viridis_beauv_01_leaf_01_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Setaria_viridis_beauv_01_Leaf_01"
+   ],
+   "tris_by_role": {
+    "leaf": 3930
+   },
+   "tris": 3930,
+   "origin_shift_m": [
+    0.0004,
+    0.005,
+    0.0
+   ],
+   "height_m": 0.173,
+   "below_ground_m": 0.002,
+   "width_m": [
+    0.32,
+    0.36
+   ],
+   "foliage_cards": {
+    "lod0": 3
+   }
+  }
+ },
+ "foliage_atlas": {
+  "from_model": "all",
+  "templates": [
+   {
+    "tag": "star",
+    "id": "a0",
+    "model": "a",
+    "w_m": 0.252,
+    "h_m": 0.284,
+    "src_W": 0.267,
+    "src_H": 0.283,
+    "opaque_frac": 0.157,
+    "px": [
+     0,
+     0,
+     365,
+     411
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "a1",
+    "model": "a",
+    "w_m": 0.238,
+    "h_m": 0.283,
+    "src_W": 0.275,
+    "src_H": 0.283,
+    "opaque_frac": 0.157,
+    "px": [
+     371,
+     0,
+     345,
+     411
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "a2",
+    "model": "a",
+    "w_m": 0.241,
+    "h_m": 0.284,
+    "src_W": 0.29,
+    "src_H": 0.283,
+    "opaque_frac": 0.164,
+    "px": [
+     0,
+     417,
+     341,
+     401
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "b0",
+    "model": "b",
+    "w_m": 0.309,
+    "h_m": 0.172,
+    "src_W": 0.327,
+    "src_H": 0.173,
+    "opaque_frac": 0.236,
+    "px": [
+     347,
+     417,
+     388,
+     215
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "b1",
+    "model": "b",
+    "w_m": 0.34,
+    "h_m": 0.167,
+    "src_W": 0.346,
+    "src_H": 0.173,
+    "opaque_frac": 0.207,
+    "px": [
+     0,
+     825,
+     403,
+     198
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "b2",
+    "model": "b",
+    "w_m": 0.357,
+    "h_m": 0.172,
+    "src_W": 0.427,
+    "src_H": 0.173,
+    "opaque_frac": 0.215,
+    "px": [
+     409,
+     825,
+     343,
+     165
+    ]
+   }
+  ],
+  "atlas_opaque_fraction": 0.111,
+  "size": [
+   1024,
+   1024
+  ]
+ },
+ "lods": {
+  "a_lod0": {
+   "bark_tris": 0,
+   "foliage_tris": 6,
+   "total_tris": 6,
+   "verts": 12,
+   "bbox_blender_zup": [
+    [
+     -0.131,
+     -0.091,
+     0.0
+    ],
+    [
+     0.121,
+     0.122,
+     0.282
+    ]
+   ],
+   "glb_bytes": 2205528
+  },
+  "b_lod0": {
+   "bark_tris": 0,
+   "foliage_tris": 6,
+   "total_tris": 6,
+   "verts": 12,
+   "bbox_blender_zup": [
+    [
+     -0.15,
+     -0.175,
+     0.0
+    ],
+    [
+     0.16,
+     0.148,
+     0.169
+    ]
+   ],
+   "glb_bytes": 2205532
+  }
+ },
+ "materials": [
+  "foliage"
+ ],
+ "roughness": {
+  "bark": null,
+  "foliage": 0.715
+ },
+ "source": {
+  "a": "MT_PM_V60_Setaria_viridis_beauv_01_06.blend",
+  "b": "MT_PM_V60_Setaria_viridis_beauv_01_03.blend"
+ }
+}

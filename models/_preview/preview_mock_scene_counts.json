@@ -1,0 +1,1 @@
+{"species": {"birch": {"lod0": 27, "cross_cards": 1013}, "gentree": {"lod0": 10, "cross_cards": 491}, "alder": {"lod0": 15, "cross_cards": 1018}, "maple": {"lod0": 8, "cross_cards": 375}}, "edge": {"abelia": 43, "cistus": 20, "lolium": 77, "setaria": 58}, "understory": 73, "band": true, "fog_density": 0.0045, "near_m": 40.0, "far_m": 300.0, "spacing_m": 7.0}

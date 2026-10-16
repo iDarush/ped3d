@@ -1,0 +1,23 @@
+{
+ "cistus_cards_color": {
+  "codec": "ETC1S RGBA sRGB, coverage-preserving mips",
+  "mask_IoU_mip0": 0.9888,
+  "coverage_src": 0.262,
+  "coverage_ktx2": 0.2614,
+  "rgb_psnr_db": 34.6,
+  "coverage_per_mip_0_6": [
+   0.2614,
+   0.2616,
+   0.2631,
+   0.2527,
+   0.2712,
+   0.2708,
+   0.125
+  ]
+ },
+ "cistus_cards_normal": {
+  "codec": "UASTC q3 RDO1.0 zstd18, linear, 200^2",
+  "angular_err_deg_mean": 3.01,
+  "p99": 15.0
+ }
+}

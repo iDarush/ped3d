@@ -1,0 +1,1986 @@
+{
+ "abelia/out_ktx2/abelia_a_lod0.glb": {
+  "tris": 1387,
+  "materials": [
+   "bark:OPAQUE",
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/bark_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 259706
+   },
+   {
+    "uri": "textures/bark_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 90267
+   },
+   {
+    "uri": "textures/bark_rough.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 193479
+   },
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 294718
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 115658
+   }
+  ],
+  "bbox": [
+   [
+    -0.7,
+    0,
+    -0.68
+   ],
+   [
+    0.7,
+    1.44,
+    0.63
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 115404
+ },
+ "abelia/out_ktx2/abelia_a_lod1.glb": {
+  "tris": 520,
+  "materials": [
+   "bark:OPAQUE",
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/bark_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 259706
+   },
+   {
+    "uri": "textures/bark_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 90267
+   },
+   {
+    "uri": "textures/bark_rough.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 193479
+   },
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 294718
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 115658
+   }
+  ],
+  "bbox": [
+   [
+    -0.71,
+    0,
+    -0.68
+   ],
+   [
+    0.68,
+    1.44,
+    0.63
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 50480
+ },
+ "abelia/out_ktx2/abelia_b_lod0.glb": {
+  "tris": 1382,
+  "materials": [
+   "bark:OPAQUE",
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/bark_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 259706
+   },
+   {
+    "uri": "textures/bark_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 90267
+   },
+   {
+    "uri": "textures/bark_rough.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 193479
+   },
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 294718
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 115658
+   }
+  ],
+  "bbox": [
+   [
+    -0.74,
+    0,
+    -0.74
+   ],
+   [
+    0.77,
+    1.19,
+    0.76
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 119436
+ },
+ "abelia/out_ktx2/abelia_b_lod1.glb": {
+  "tris": 520,
+  "materials": [
+   "bark:OPAQUE",
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/bark_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 259706
+   },
+   {
+    "uri": "textures/bark_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 90267
+   },
+   {
+    "uri": "textures/bark_rough.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 193479
+   },
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 294718
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 115658
+   }
+  ],
+  "bbox": [
+   [
+    -0.74,
+    0,
+    -0.77
+   ],
+   [
+    0.77,
+    1.23,
+    0.77
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 50652
+ },
+ "alder/out_ktx2/alder_a_lod0.glb": {
+  "tris": 4218,
+  "materials": [
+   "bark:OPAQUE",
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/bark_normal.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 1204323
+   },
+   {
+    "uri": "textures/bark_color.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 265370
+   },
+   {
+    "uri": "textures/bark_rough.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 850512
+   },
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 1136506
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 289505
+   }
+  ],
+  "bbox": [
+   [
+    -4.23,
+    0,
+    -4.1
+   ],
+   [
+    4.75,
+    14.76,
+    4.4
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 308500
+ },
+ "alder/out_ktx2/alder_a_lod1.glb": {
+  "tris": 1240,
+  "materials": [
+   "bark:OPAQUE",
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/bark_normal.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 1204323
+   },
+   {
+    "uri": "textures/bark_color.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 265370
+   },
+   {
+    "uri": "textures/bark_rough.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 850512
+   },
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 1136506
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 289505
+   }
+  ],
+  "bbox": [
+   [
+    -4.1,
+    0,
+    -4.08
+   ],
+   [
+    4.69,
+    14.64,
+    4.39
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 89984
+ },
+ "alder/out_ktx2/alder_b_lod0.glb": {
+  "tris": 4222,
+  "materials": [
+   "bark:OPAQUE",
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/bark_normal.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 1204323
+   },
+   {
+    "uri": "textures/bark_color.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 265370
+   },
+   {
+    "uri": "textures/bark_rough.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 850512
+   },
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 1136506
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 289505
+   }
+  ],
+  "bbox": [
+   [
+    -4.43,
+    -0.28,
+    -4.76
+   ],
+   [
+    4.67,
+    10.72,
+    3.77
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 318604
+ },
+ "alder/out_ktx2/alder_b_lod1.glb": {
+  "tris": 1252,
+  "materials": [
+   "bark:OPAQUE",
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/bark_normal.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 1204323
+   },
+   {
+    "uri": "textures/bark_color.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 265370
+   },
+   {
+    "uri": "textures/bark_rough.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 850512
+   },
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 1136506
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 289505
+   }
+  ],
+  "bbox": [
+   [
+    -4.41,
+    -0.28,
+    -4.64
+   ],
+   [
+    4.48,
+    10.8,
+    3.95
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 102676
+ },
+ "cistus/out_ktx2/cistus_a_lod0.glb": {
+  "tris": 1449,
+  "materials": [
+   "bark:OPAQUE",
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/bark_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 259895
+   },
+   {
+    "uri": "textures/bark_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 87501
+   },
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 293290
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 109309
+   }
+  ],
+  "bbox": [
+   [
+    -0.79,
+    0,
+    -0.85
+   ],
+   [
+    0.77,
+    1.03,
+    0.68
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 118876
+ },
+ "cistus/out_ktx2/cistus_a_lod1.glb": {
+  "tris": 522,
+  "materials": [
+   "bark:OPAQUE",
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/bark_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 259895
+   },
+   {
+    "uri": "textures/bark_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 87501
+   },
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 293290
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 109309
+   }
+  ],
+  "bbox": [
+   [
+    -0.79,
+    0,
+    -0.84
+   ],
+   [
+    0.8,
+    1.04,
+    0.7
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 50188
+ },
+ "cistus/out_ktx2/cistus_b_lod0.glb": {
+  "tris": 1360,
+  "materials": [
+   "bark:OPAQUE",
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/bark_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 259895
+   },
+   {
+    "uri": "textures/bark_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 87501
+   },
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 293290
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 109309
+   }
+  ],
+  "bbox": [
+   [
+    -0.75,
+    0,
+    -0.65
+   ],
+   [
+    0.69,
+    1.26,
+    0.69
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 117064
+ },
+ "cistus/out_ktx2/cistus_b_lod1.glb": {
+  "tris": 521,
+  "materials": [
+   "bark:OPAQUE",
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/bark_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 259895
+   },
+   {
+    "uri": "textures/bark_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 87501
+   },
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 293290
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 109309
+   }
+  ],
+  "bbox": [
+   [
+    -0.73,
+    0,
+    -0.65
+   ],
+   [
+    0.66,
+    1.24,
+    0.69
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 51832
+ },
+ "lolium/out_ktx2/lolium_a_lod0.glb": {
+  "tris": 6,
+  "materials": [
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 280132
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 110865
+   }
+  ],
+  "bbox": [
+   [
+    -0.44,
+    0,
+    -0.36
+   ],
+   [
+    0.4,
+    0.47,
+    0.37
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 2392
+ },
+ "lolium/out_ktx2/lolium_b_lod0.glb": {
+  "tris": 6,
+  "materials": [
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 280132
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     512,
+     512
+    ],
+    "bytes": 110865
+   }
+  ],
+  "bbox": [
+   [
+    -0.38,
+    0,
+    -0.34
+   ],
+   [
+    0.38,
+    0.27,
+    0.36
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 2392
+ },
+ "setaria/out_ktx2/setaria_a_lod0.glb": {
+  "tris": 6,
+  "materials": [
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 927995
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 248523
+   }
+  ],
+  "bbox": [
+   [
+    -0.13,
+    0,
+    -0.12
+   ],
+   [
+    0.12,
+    0.28,
+    0.09
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 2396
+ },
+ "setaria/out_ktx2/setaria_b_lod0.glb": {
+  "tris": 6,
+  "materials": [
+   "foliage:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/foliage_normal.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 927995
+   },
+   {
+    "uri": "textures/foliage_color.ktx2",
+    "px": [
+     1024,
+     1024
+    ],
+    "bytes": 248523
+   }
+  ],
+  "bbox": [
+   [
+    -0.15,
+    0,
+    -0.15
+   ],
+   [
+    0.16,
+    0.17,
+    0.17
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 2400
+ },
+ "abelia/cards/abelia_card_3plane.glb": {
+  "tris": 6,
+  "materials": [
+   "abelia_card:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/abelia_cards_normal.ktx2",
+    "px": [
+     512,
+     232
+    ],
+    "bytes": 146561
+   },
+   {
+    "uri": "textures/abelia_cards_color.ktx2",
+    "px": [
+     1024,
+     464
+    ],
+    "bytes": 160755
+   }
+  ],
+  "bbox": [
+   [
+    -0.67,
+    -0.11,
+    -0.58
+   ],
+   [
+    0.67,
+    1.12,
+    0.58
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 2424
+ },
+ "abelia/cards/abelia_card_billboard.glb": {
+  "tris": 2,
+  "materials": [
+   "abelia_card:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/abelia_cards_normal.ktx2",
+    "px": [
+     512,
+     232
+    ],
+    "bytes": 146561
+   },
+   {
+    "uri": "textures/abelia_cards_color.ktx2",
+    "px": [
+     1024,
+     464
+    ],
+    "bytes": 160755
+   }
+  ],
+  "bbox": [
+   [
+    -0.67,
+    -0.11,
+    0
+   ],
+   [
+    0.67,
+    1.12,
+    0
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 1984
+ },
+ "abelia/cards/abelia_card_cross.glb": {
+  "tris": 4,
+  "materials": [
+   "abelia_card:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/abelia_cards_normal.ktx2",
+    "px": [
+     512,
+     232
+    ],
+    "bytes": 146561
+   },
+   {
+    "uri": "textures/abelia_cards_color.ktx2",
+    "px": [
+     1024,
+     464
+    ],
+    "bytes": 160755
+   }
+  ],
+  "bbox": [
+   [
+    -0.67,
+    -0.11,
+    -0.67
+   ],
+   [
+    0.67,
+    1.12,
+    0.67
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 2216
+ },
+ "alder/cards/alder_card_3plane.glb": {
+  "tris": 6,
+  "materials": [
+   "alder_card:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/alder_cards_normal.ktx2",
+    "px": [
+     1024,
+     768
+    ],
+    "bytes": 885338
+   },
+   {
+    "uri": "textures/alder_cards_color.ktx2",
+    "px": [
+     2048,
+     1536
+    ],
+    "bytes": 742069
+   }
+  ],
+  "bbox": [
+   [
+    -0.35,
+    -0.03,
+    -0.31
+   ],
+   [
+    0.35,
+    1.04,
+    0.31
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 2420
+ },
+ "alder/cards/alder_card_billboard.glb": {
+  "tris": 2,
+  "materials": [
+   "alder_card:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/alder_cards_normal.ktx2",
+    "px": [
+     1024,
+     768
+    ],
+    "bytes": 885338
+   },
+   {
+    "uri": "textures/alder_cards_color.ktx2",
+    "px": [
+     2048,
+     1536
+    ],
+    "bytes": 742069
+   }
+  ],
+  "bbox": [
+   [
+    -0.35,
+    -0.03,
+    0
+   ],
+   [
+    0.35,
+    1.04,
+    0
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 1976
+ },
+ "alder/cards/alder_card_cross.glb": {
+  "tris": 4,
+  "materials": [
+   "alder_card:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/alder_cards_normal.ktx2",
+    "px": [
+     1024,
+     768
+    ],
+    "bytes": 885338
+   },
+   {
+    "uri": "textures/alder_cards_color.ktx2",
+    "px": [
+     2048,
+     1536
+    ],
+    "bytes": 742069
+   }
+  ],
+  "bbox": [
+   [
+    -0.35,
+    -0.03,
+    -0.35
+   ],
+   [
+    0.35,
+    1.04,
+    0.35
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 2208
+ },
+ "cistus/cards/cistus_card_3plane.glb": {
+  "tris": 6,
+  "materials": [
+   "cistus_card:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/cistus_cards_normal.ktx2",
+    "px": [
+     512,
+     200
+    ],
+    "bytes": 124124
+   },
+   {
+    "uri": "textures/cistus_cards_color.ktx2",
+    "px": [
+     1024,
+     400
+    ],
+    "bytes": 143918
+   }
+  ],
+  "bbox": [
+   [
+    -1.01,
+    -0.16,
+    -0.87
+   ],
+   [
+    1.01,
+    1.42,
+    0.87
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 2424
+ },
+ "cistus/cards/cistus_card_billboard.glb": {
+  "tris": 2,
+  "materials": [
+   "cistus_card:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/cistus_cards_normal.ktx2",
+    "px": [
+     512,
+     200
+    ],
+    "bytes": 124124
+   },
+   {
+    "uri": "textures/cistus_cards_color.ktx2",
+    "px": [
+     1024,
+     400
+    ],
+    "bytes": 143918
+   }
+  ],
+  "bbox": [
+   [
+    -1.01,
+    -0.16,
+    0
+   ],
+   [
+    1.01,
+    1.42,
+    0
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 1984
+ },
+ "cistus/cards/cistus_card_cross.glb": {
+  "tris": 4,
+  "materials": [
+   "cistus_card:MASK:2s"
+  ],
+  "tex": [
+   {
+    "uri": "textures/cistus_cards_normal.ktx2",
+    "px": [
+     512,
+     200
+    ],
+    "bytes": 124124
+   },
+   {
+    "uri": "textures/cistus_cards_color.ktx2",
+    "px": [
+     1024,
+     400
+    ],
+    "bytes": 143918
+   }
+  ],
+  "bbox": [
+   [
+    -1.01,
+    -0.16,
+    -1.01
+   ],
+   [
+    1.01,
+    1.42,
+    1.01
+   ]
+  ],
+  "ext": [
+   "KHR_texture_basisu"
+  ],
+  "nodes": [
+   {
+    "t": [
+     0,
+     0,
+     0
+    ],
+    "r": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "s": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "bytes": 2216
+ }
+}

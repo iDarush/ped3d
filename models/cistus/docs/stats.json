@@ -1,0 +1,375 @@
+{
+ "warnings": [],
+ "textures": {
+  "bark_color.jpg": [
+   512,
+   512
+  ],
+  "bark_normal.png": [
+   512,
+   512
+  ],
+  "foliage_color.png": [
+   512,
+   512
+  ],
+  "foliage_normal.png": [
+   512,
+   512
+  ]
+ },
+ "name": "cistus",
+ "models": {
+  "a": {
+   "blend": "MT_PM_V60_Cistus_albidus_01_02.blend",
+   "relinked": 10,
+   "missing_images_ignored": [
+    "mt_pm_v60_cistus_albidus_01_leaf_01_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Cistus_albidus_01_Branch_01",
+    "MT_PM_V60_Cistus_albidus_01_Leaf_01",
+    "MT_PM_V60_Cistus_albidus_01_Trunk_01"
+   ],
+   "tris_by_role": {
+    "twig": 73728,
+    "bark": 41640,
+    "leaf": 422024
+   },
+   "tris": 537392,
+   "bark_components_kept": 16,
+   "bark_components_to_twigs": 233,
+   "origin_shift_m": [
+    -0.0605,
+    -0.0339,
+    0.0
+   ],
+   "height_m": 1.032,
+   "below_ground_m": 0.053,
+   "width_m": [
+    1.53,
+    1.51
+   ],
+   "bark_source_tris": 5440,
+   "bark_limbs": 16,
+   "lod1_limbs_dropped": 11,
+   "bark_protect_scale": {
+    "lod0": 1.0,
+    "lod1": 0.6
+   },
+   "clusters_small": {
+    "k": 220,
+    "leaf_tris_per_cluster_median": 1789,
+    "twig_tris_assigned": 109801,
+    "twig_tris_total": 109928
+   },
+   "clusters_large": {
+    "k": 100,
+    "leaf_tris_per_cluster_median": 4026,
+    "twig_tris_assigned": 109919,
+    "twig_tris_total": 109928
+   },
+   "foliage_cards": {
+    "lod0": 440,
+    "lod1": 200
+   }
+  },
+  "b": {
+   "blend": "MT_PM_V60_Cistus_albidus_01_04.blend",
+   "relinked": 10,
+   "missing_images_ignored": [
+    "mt_pm_v60_cistus_albidus_01_leaf_01_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Cistus_albidus_01_Branch_01",
+    "MT_PM_V60_Cistus_albidus_01_Leaf_01",
+    "MT_PM_V60_Cistus_albidus_01_Trunk_01"
+   ],
+   "tris_by_role": {
+    "twig": 53488,
+    "bark": 54274,
+    "leaf": 259776
+   },
+   "tris": 367538,
+   "bark_components_kept": 16,
+   "bark_components_to_twigs": 283,
+   "origin_shift_m": [
+    -0.0221,
+    -0.0034,
+    0.0
+   ],
+   "height_m": 1.203,
+   "below_ground_m": 0.0,
+   "width_m": [
+    1.39,
+    1.34
+   ],
+   "bark_source_tris": 12274,
+   "bark_limbs": 16,
+   "lod1_limbs_dropped": 13,
+   "bark_protect_scale": {
+    "lod0": 1.0,
+    "lod1": 0.6
+   },
+   "clusters_small": {
+    "k": 220,
+    "leaf_tris_per_cluster_median": 1138,
+    "twig_tris_assigned": 86738,
+    "twig_tris_total": 95488
+   },
+   "clusters_large": {
+    "k": 100,
+    "leaf_tris_per_cluster_median": 2573,
+    "twig_tris_assigned": 88655,
+    "twig_tris_total": 95488
+   },
+   "foliage_cards": {
+    "lod0": 440,
+    "lod1": 200
+   }
+  }
+ },
+ "bark_roughness_range": [
+  0.532,
+  0.824,
+  0.923,
+  0.752,
+  0.879
+ ],
+ "foliage_atlas": {
+  "from_model": "a",
+  "templates": [
+   {
+    "tag": "small",
+    "id": "small0",
+    "cluster": 159,
+    "w_m": 0.259,
+    "h_m": 0.268,
+    "src_W": 0.257,
+    "src_H": 0.265,
+    "leaf_tris": 2140,
+    "opaque_frac": 0.305,
+    "px": [
+     0,
+     0,
+     167,
+     173
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small1",
+    "cluster": 80,
+    "w_m": 0.173,
+    "h_m": 0.125,
+    "src_W": 0.172,
+    "src_H": 0.124,
+    "leaf_tris": 2152,
+    "opaque_frac": 0.429,
+    "px": [
+     151,
+     179,
+     172,
+     124
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small2",
+    "cluster": 200,
+    "w_m": 0.177,
+    "h_m": 0.113,
+    "src_W": 0.175,
+    "src_H": 0.112,
+    "leaf_tris": 1880,
+    "opaque_frac": 0.248,
+    "px": [
+     177,
+     357,
+     173,
+     110
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small3",
+    "cluster": 218,
+    "w_m": 0.147,
+    "h_m": 0.158,
+    "src_W": 0.149,
+    "src_H": 0.157,
+    "leaf_tris": 2047,
+    "opaque_frac": 0.468,
+    "px": [
+     173,
+     0,
+     160,
+     172
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small4",
+    "cluster": 25,
+    "w_m": 0.186,
+    "h_m": 0.221,
+    "src_W": 0.186,
+    "src_H": 0.219,
+    "leaf_tris": 1623,
+    "opaque_frac": 0.39,
+    "px": [
+     0,
+     179,
+     145,
+     173
+    ]
+   },
+   {
+    "tag": "large",
+    "id": "large0",
+    "cluster": 49,
+    "w_m": 0.262,
+    "h_m": 0.191,
+    "src_W": 0.262,
+    "src_H": 0.189,
+    "leaf_tris": 4155,
+    "opaque_frac": 0.323,
+    "px": [
+     329,
+     179,
+     171,
+     125
+    ]
+   },
+   {
+    "tag": "large",
+    "id": "large1",
+    "cluster": 89,
+    "w_m": 0.285,
+    "h_m": 0.258,
+    "src_W": 0.282,
+    "src_H": 0.256,
+    "leaf_tris": 4611,
+    "opaque_frac": 0.443,
+    "px": [
+     338,
+     0,
+     173,
+     156
+    ]
+   },
+   {
+    "tag": "large",
+    "id": "large2",
+    "cluster": 11,
+    "w_m": 0.349,
+    "h_m": 0.248,
+    "src_W": 0.349,
+    "src_H": 0.248,
+    "leaf_tris": 3820,
+    "opaque_frac": 0.435,
+    "px": [
+     0,
+     357,
+     171,
+     122
+    ]
+   }
+  ],
+  "atlas_opaque_fraction": 0.279,
+  "size": [
+   512,
+   512
+  ]
+ },
+ "lods": {
+  "a_lod0": {
+   "bark_tris": 569,
+   "foliage_tris": 880,
+   "total_tris": 1449,
+   "verts": 2105,
+   "bbox_blender_zup": [
+    [
+     -0.792,
+     -0.681,
+     -0.0
+    ],
+    [
+     0.773,
+     0.849,
+     1.032
+    ]
+   ],
+   "glb_bytes": 1395084
+  },
+  "a_lod1": {
+   "bark_tris": 122,
+   "foliage_tris": 400,
+   "total_tris": 522,
+   "verts": 876,
+   "bbox_blender_zup": [
+    [
+     -0.787,
+     -0.705,
+     -0.0
+    ],
+    [
+     0.802,
+     0.836,
+     1.035
+    ]
+   ],
+   "glb_bytes": 1326392
+  },
+  "b_lod0": {
+   "bark_tris": 480,
+   "foliage_tris": 880,
+   "total_tris": 1360,
+   "verts": 2054,
+   "bbox_blender_zup": [
+    [
+     -0.746,
+     -0.689,
+     -0.0
+    ],
+    [
+     0.686,
+     0.648,
+     1.256
+    ]
+   ],
+   "glb_bytes": 1393272
+  },
+  "b_lod1": {
+   "bark_tris": 121,
+   "foliage_tris": 400,
+   "total_tris": 521,
+   "verts": 872,
+   "bbox_blender_zup": [
+    [
+     -0.733,
+     -0.687,
+     -0.002
+    ],
+    [
+     0.663,
+     0.652,
+     1.236
+    ]
+   ],
+   "glb_bytes": 1328036
+  }
+ },
+ "materials": [
+  "bark",
+  "foliage"
+ ],
+ "roughness": {
+  "bark": 0.824,
+  "foliage": 0.715
+ },
+ "source": {
+  "a": "MT_PM_V60_Cistus_albidus_01_02.blend",
+  "b": "MT_PM_V60_Cistus_albidus_01_04.blend"
+ }
+}

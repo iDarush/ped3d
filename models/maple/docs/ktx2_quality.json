@@ -1,0 +1,22 @@
+{
+ "bark_color": {
+  "psnr_db": 37.0
+ },
+ "bark_normal": {
+  "angular_err_deg_mean": 1.51,
+  "p99": 4.81
+ },
+ "foliage_color": {
+  "psnr_db": 29.4,
+  "mask_IoU": 0.9902,
+  "coverage_mip0_2_4": [
+   0.3578,
+   0.3573,
+   0.3606
+  ]
+ },
+ "foliage_normal": {
+  "angular_err_deg_mean": 1.79,
+  "p99": 9.93
+ }
+}

@@ -1,0 +1,392 @@
+{
+ "warnings": [],
+ "textures": {
+  "bark_color.jpg": [
+   1024,
+   1024
+  ],
+  "bark_normal.png": [
+   1024,
+   1024
+  ],
+  "foliage_color.png": [
+   1024,
+   1024
+  ],
+  "foliage_normal.png": [
+   1024,
+   1024
+  ]
+ },
+ "name": "maple",
+ "models": {
+  "a": {
+   "blend": "MT_PM_V60_Acer_buergerianum_01_03.blend",
+   "relinked": 11,
+   "missing_images_ignored": [
+    "mt_pm_v60_acer_buergerianum_01_leaf_01_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Acer_buergerianum_01_Leaf_01",
+    "MT_PM_V60_Acer_buergerianum_01_Petiole_01",
+    "MT_PM_V60_Acer_buergerianum_01_Trunk_01"
+   ],
+   "tris_by_role": {
+    "twig": 629224,
+    "leaf": 427660,
+    "bark": 584080
+   },
+   "tris": 1640964,
+   "bark_components_kept": 26,
+   "bark_components_to_twigs": 8434,
+   "origin_shift_m": [
+    0.013,
+    -0.0099,
+    0.0
+   ],
+   "height_m": 12.5,
+   "below_ground_m": 0.0,
+   "width_m": [
+    6.87,
+    7.17
+   ],
+   "bark_source_tris": 32512,
+   "bark_limbs": 26,
+   "lod1_limbs_dropped": 24,
+   "bark_protect_scale": {
+    "lod0": 1.0,
+    "lod1": 0.6
+   },
+   "clusters_small": {
+    "k": 450,
+    "leaf_tris_per_cluster_median": 909,
+    "twig_tris_assigned": 1178839,
+    "twig_tris_total": 1180792
+   },
+   "clusters_large": {
+    "k": 160,
+    "leaf_tris_per_cluster_median": 2541,
+    "twig_tris_assigned": 1178911,
+    "twig_tris_total": 1180792
+   },
+   "foliage_cards": {
+    "lod0": 900,
+    "lod1": 320
+   }
+  },
+  "b": {
+   "blend": "MT_PM_V60_Acer_buergerianum_01_01.blend",
+   "relinked": 11,
+   "missing_images_ignored": [
+    "mt_pm_v60_acer_buergerianum_01_leaf_01_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Acer_buergerianum_01_Leaf_01",
+    "MT_PM_V60_Acer_buergerianum_01_Petiole_01",
+    "MT_PM_V60_Acer_buergerianum_01_Trunk_01"
+   ],
+   "tris_by_role": {
+    "twig": 543676,
+    "leaf": 443700,
+    "bark": 517456
+   },
+   "tris": 1504832,
+   "bark_components_kept": 17,
+   "bark_components_to_twigs": 7270,
+   "origin_shift_m": [
+    -0.0619,
+    0.0227,
+    0.0
+   ],
+   "height_m": 12.202,
+   "below_ground_m": 0.0,
+   "width_m": [
+    6.84,
+    7.49
+   ],
+   "bark_source_tris": 35548,
+   "bark_limbs": 17,
+   "lod1_limbs_dropped": 15,
+   "bark_protect_scale": {
+    "lod0": 0.6,
+    "lod1": 0.6
+   },
+   "clusters_small": {
+    "k": 450,
+    "leaf_tris_per_cluster_median": 951,
+    "twig_tris_assigned": 1024730,
+    "twig_tris_total": 1025584
+   },
+   "clusters_large": {
+    "k": 160,
+    "leaf_tris_per_cluster_median": 2648,
+    "twig_tris_assigned": 1024857,
+    "twig_tris_total": 1025584
+   },
+   "foliage_cards": {
+    "lod0": 900,
+    "lod1": 320
+   }
+  }
+ },
+ "bark_roughness_range": [
+  0.7,
+  0.815,
+  0.979,
+  0.773,
+  0.862
+ ],
+ "foliage_atlas": {
+  "from_model": "a",
+  "templates": [
+   {
+    "tag": "small",
+    "id": "small0",
+    "cluster": 34,
+    "w_m": 0.835,
+    "h_m": 0.683,
+    "src_W": 0.847,
+    "src_H": 0.677,
+    "leaf_tris": 955,
+    "opaque_frac": 0.286,
+    "px": [
+     684,
+     681,
+     329,
+     270
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small1",
+    "cluster": 43,
+    "w_m": 0.713,
+    "h_m": 0.842,
+    "src_W": 0.712,
+    "src_H": 0.837,
+    "leaf_tris": 1085,
+    "opaque_frac": 0.367,
+    "px": [
+     0,
+     0,
+     285,
+     337
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small2",
+    "cluster": 430,
+    "w_m": 0.631,
+    "h_m": 0.805,
+    "src_W": 0.629,
+    "src_H": 0.8,
+    "leaf_tris": 817,
+    "opaque_frac": 0.419,
+    "px": [
+     291,
+     0,
+     264,
+     337
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small3",
+    "cluster": 138,
+    "w_m": 0.687,
+    "h_m": 0.678,
+    "src_W": 0.683,
+    "src_H": 0.682,
+    "leaf_tris": 1090,
+    "opaque_frac": 0.43,
+    "px": [
+     0,
+     343,
+     337,
+     332
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small4",
+    "cluster": 136,
+    "w_m": 0.826,
+    "h_m": 0.79,
+    "src_W": 0.821,
+    "src_H": 0.783,
+    "leaf_tris": 871,
+    "opaque_frac": 0.423,
+    "px": [
+     343,
+     343,
+     337,
+     322
+    ]
+   },
+   {
+    "tag": "small",
+    "id": "small5",
+    "cluster": 243,
+    "w_m": 0.757,
+    "h_m": 0.711,
+    "src_W": 0.749,
+    "src_H": 0.71,
+    "leaf_tris": 959,
+    "opaque_frac": 0.429,
+    "px": [
+     685,
+     343,
+     338,
+     317
+    ]
+   },
+   {
+    "tag": "large",
+    "id": "large0",
+    "cluster": 90,
+    "w_m": 1.424,
+    "h_m": 1.158,
+    "src_W": 1.418,
+    "src_H": 1.158,
+    "leaf_tris": 3062,
+    "opaque_frac": 0.432,
+    "px": [
+     342,
+     681,
+     336,
+     273
+    ]
+   },
+   {
+    "tag": "large",
+    "id": "large1",
+    "cluster": 66,
+    "w_m": 1.005,
+    "h_m": 1.065,
+    "src_W": 1.003,
+    "src_H": 1.058,
+    "leaf_tris": 2379,
+    "opaque_frac": 0.445,
+    "px": [
+     561,
+     0,
+     317,
+     337
+    ]
+   },
+   {
+    "tag": "large",
+    "id": "large2",
+    "cluster": 23,
+    "w_m": 1.129,
+    "h_m": 0.979,
+    "src_W": 1.124,
+    "src_H": 0.976,
+    "leaf_tris": 2975,
+    "opaque_frac": 0.512,
+    "px": [
+     0,
+     681,
+     336,
+     291
+    ]
+   }
+  ],
+  "atlas_opaque_fraction": 0.358,
+  "size": [
+   1024,
+   1024
+  ]
+ },
+ "lods": {
+  "a_lod0": {
+   "bark_tris": 2380,
+   "foliage_tris": 1800,
+   "total_tris": 4180,
+   "verts": 4897,
+   "bbox_blender_zup": [
+    [
+     -3.469,
+     -3.499,
+     -0.0
+    ],
+    [
+     3.318,
+     3.667,
+     12.46
+    ]
+   ],
+   "glb_bytes": 5694708
+  },
+  "a_lod1": {
+   "bark_tris": 605,
+   "foliage_tris": 640,
+   "total_tris": 1245,
+   "verts": 1600,
+   "bbox_blender_zup": [
+    [
+     -3.735,
+     -3.524,
+     -0.111
+    ],
+    [
+     3.505,
+     3.583,
+     12.651
+    ]
+   ],
+   "glb_bytes": 5512688
+  },
+  "b_lod0": {
+   "bark_tris": 2425,
+   "foliage_tris": 1800,
+   "total_tris": 4225,
+   "verts": 4888,
+   "bbox_blender_zup": [
+    [
+     -4.877,
+     -3.985,
+     -0.014
+    ],
+    [
+     2.033,
+     3.426,
+     12.224
+    ]
+   ],
+   "glb_bytes": 5708944
+  },
+  "b_lod1": {
+   "bark_tris": 610,
+   "foliage_tris": 640,
+   "total_tris": 1250,
+   "verts": 1603,
+   "bbox_blender_zup": [
+    [
+     -4.856,
+     -4.037,
+     -0.111
+    ],
+    [
+     2.0,
+     3.524,
+     12.265
+    ]
+   ],
+   "glb_bytes": 5514056
+  }
+ },
+ "materials": [
+  "bark",
+  "foliage"
+ ],
+ "roughness": {
+  "bark": 0.815,
+  "foliage": 0.741
+ },
+ "source": {
+  "a": "MT_PM_V60_Acer_buergerianum_01_03.blend",
+  "b": "MT_PM_V60_Acer_buergerianum_01_01.blend"
+ }
+}

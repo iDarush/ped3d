@@ -1,0 +1,248 @@
+{
+ "alder": {
+  "models_download": 4565980,
+  "models_gpu_tex": 6291456.0,
+  "models_gpu_geom": 806984,
+  "cards_download": 1634011,
+  "cards_gpu_tex": 5242880.0,
+  "textures": {
+   "out_ktx2/textures/bark_color.ktx2": [
+    1024,
+    1024,
+    265370,
+    0.67
+   ],
+   "out_ktx2/textures/bark_normal.ktx2": [
+    1024,
+    1024,
+    1204323,
+    1.33
+   ],
+   "out_ktx2/textures/bark_rough.ktx2": [
+    1024,
+    1024,
+    850512,
+    1.33
+   ],
+   "out_ktx2/textures/foliage_color.ktx2": [
+    1024,
+    1024,
+    289505,
+    1.33
+   ],
+   "out_ktx2/textures/foliage_normal.ktx2": [
+    1024,
+    1024,
+    1136506,
+    1.33
+   ],
+   "cards/textures/alder_cards_color.ktx2": [
+    2048,
+    1536,
+    742069,
+    4.0
+   ],
+   "cards/textures/alder_cards_normal.ktx2": [
+    1024,
+    768,
+    885338,
+    1.0
+   ]
+  },
+  "total_download": 6199991,
+  "total_gpu": 12341320.0
+ },
+ "maple": {
+  "models_download": 3695955,
+  "models_gpu_tex": 4893354.666666666,
+  "models_gpu_geom": 765324,
+  "cards_download": 1355222,
+  "cards_gpu_tex": 4314453.333333333,
+  "textures": {
+   "out_ktx2/textures/bark_color.ktx2": [
+    1024,
+    1024,
+    240160,
+    0.67
+   ],
+   "out_ktx2/textures/bark_normal.ktx2": [
+    1024,
+    1024,
+    1180174,
+    1.33
+   ],
+   "out_ktx2/textures/foliage_color.ktx2": [
+    1024,
+    1024,
+    345625,
+    1.33
+   ],
+   "out_ktx2/textures/foliage_normal.ktx2": [
+    1024,
+    1024,
+    1152476,
+    1.33
+   ],
+   "cards/textures/maple_cards_color.ktx2": [
+    2048,
+    1264,
+    622998,
+    3.29
+   ],
+   "cards/textures/maple_cards_normal.ktx2": [
+    1024,
+    632,
+    725620,
+    0.82
+   ]
+  },
+  "total_download": 5051177,
+  "total_gpu": 9973132.0
+ },
+ "abelia": {
+  "models_download": 1289800,
+  "models_gpu_tex": 1572864.0,
+  "models_gpu_geom": 323224,
+  "cards_download": 313940,
+  "cards_gpu_tex": 791893.3333333333,
+  "textures": {
+   "out_ktx2/textures/bark_color.ktx2": [
+    512,
+    512,
+    90267,
+    0.17
+   ],
+   "out_ktx2/textures/bark_normal.ktx2": [
+    512,
+    512,
+    259706,
+    0.33
+   ],
+   "out_ktx2/textures/bark_rough.ktx2": [
+    512,
+    512,
+    193479,
+    0.33
+   ],
+   "out_ktx2/textures/foliage_color.ktx2": [
+    512,
+    512,
+    115658,
+    0.33
+   ],
+   "out_ktx2/textures/foliage_normal.ktx2": [
+    512,
+    512,
+    294718,
+    0.33
+   ],
+   "cards/textures/abelia_cards_color.ktx2": [
+    1024,
+    464,
+    160755,
+    0.6
+   ],
+   "cards/textures/abelia_cards_normal.ktx2": [
+    512,
+    232,
+    146561,
+    0.15
+   ]
+  },
+  "total_download": 1603740,
+  "total_gpu": 2687981.333333333
+ },
+ "cistus": {
+  "models_download": 1087955,
+  "models_gpu_tex": 1223338.6666666665,
+  "models_gpu_geom": 325788,
+  "cards_download": 274666,
+  "cards_gpu_tex": 682666.6666666667,
+  "textures": {
+   "out_ktx2/textures/bark_color.ktx2": [
+    512,
+    512,
+    87501,
+    0.17
+   ],
+   "out_ktx2/textures/bark_normal.ktx2": [
+    512,
+    512,
+    259895,
+    0.33
+   ],
+   "out_ktx2/textures/foliage_color.ktx2": [
+    512,
+    512,
+    109309,
+    0.33
+   ],
+   "out_ktx2/textures/foliage_normal.ktx2": [
+    512,
+    512,
+    293290,
+    0.33
+   ],
+   "cards/textures/cistus_cards_color.ktx2": [
+    1024,
+    400,
+    143918,
+    0.52
+   ],
+   "cards/textures/cistus_cards_normal.ktx2": [
+    512,
+    200,
+    124124,
+    0.13
+   ]
+  },
+  "total_download": 1362621,
+  "total_gpu": 2231793.333333333
+ },
+ "lolium": {
+  "models_download": 395781,
+  "models_gpu_tex": 699050.6666666666,
+  "models_gpu_geom": 1240,
+  "cards_download": 0,
+  "cards_gpu_tex": 0,
+  "textures": {
+   "out_ktx2/textures/foliage_color.ktx2": [
+    512,
+    512,
+    110865,
+    0.33
+   ],
+   "out_ktx2/textures/foliage_normal.ktx2": [
+    512,
+    512,
+    280132,
+    0.33
+   ]
+  },
+  "total_download": 395781,
+  "total_gpu": 700290.6666666666
+ },
+ "setaria": {
+  "models_download": 1181314,
+  "models_gpu_tex": 2796202.6666666665,
+  "models_gpu_geom": 1240,
+  "cards_download": 0,
+  "cards_gpu_tex": 0,
+  "textures": {
+   "out_ktx2/textures/foliage_color.ktx2": [
+    1024,
+    1024,
+    248523,
+    1.33
+   ],
+   "out_ktx2/textures/foliage_normal.ktx2": [
+    1024,
+    1024,
+    927995,
+    1.33
+   ]
+  },
+  "total_download": 1181314,
+  "total_gpu": 2797442.6666666665
+ }
+}
