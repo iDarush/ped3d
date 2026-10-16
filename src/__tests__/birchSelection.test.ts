@@ -40,3 +40,29 @@ it("uses a shrub-specific detail boundary instead of the tree's 20 metres", () =
   s.update([{i:1,dd:15**2}],0);
   expect(s.states.get(1)!.level).toBe(1);
 });
+
+it("does not exchange visible cards/models at the radius boundary or when slots free", () => {
+  const s=new BirchSelection([1,1],42);
+  s.update([{i:1,dd:100},{i:2,dd:500}],0);
+  const visible=new Set([1,3]);
+  s.update([{i:1,dd:90**2},{i:3,dd:25}],1,visible);
+  s.update([{i:1,dd:90**2},{i:3,dd:25}],2,visible);
+  expect(s.states.get(1)!.to).toBe(1);
+  expect(s.states.has(3)).toBe(false);
+  expect(s.states.size).toBe(1);
+  s.update([{i:3,dd:25}],3,new Set());
+  s.update([{i:3,dd:25}],4,new Set());
+  expect([...s.states.keys()]).toEqual([3]);
+  expect(s.states.get(3)!.level).toBe(1); // LOD0 was still fading at admission.
+});
+
+it("prepares distant encounters within the same budgets and then locks their LOD",()=>{
+  const s=new BirchSelection([1,1],42);
+  s.update([{i:1,dd:70**2,admit:true},{i:2,dd:80**2,admit:true},{i:3,dd:90**2,admit:true}],0,new Set());
+  expect(s.states.size).toBe(2);
+  expect(s.states.get(1)!.level).toBe(1);
+  expect(s.states.get(2)!.level).toBe(0);
+  s.update([{i:1,dd:10**2},{i:2,dd:15**2}],1,new Set([1,2]));
+  expect(s.states.get(1)!.level).toBe(1);
+  expect(s.states.get(2)!.to).toBe(1);
+});
