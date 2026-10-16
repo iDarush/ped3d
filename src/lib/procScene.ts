@@ -8,6 +8,7 @@ import { createGrassField } from "./grassField";
 import type { QualityPreset } from "./quality";
 import { patchRoadSurface } from "./roadSurface";
 import { smoothRoad } from "./roadCurve";
+import { createForestRuntime, type ForestStats } from "./forestRuntime";
 import { BirchSelection, birchBlend } from "./birchSelection";
 import { cardCoverage, patchBirchLod, patchBirchBlend } from "./birchLod";
 
@@ -44,6 +45,7 @@ export interface BuiltScene {
   stats: { triangles: number; treeInstances: number };
   /** blades currently in the grass field */
   grassStats: () => { blades: number; triangles: number };
+  forestStats: () => ForestStats | undefined;
   birchStats: () => { lod0: number; lod1: number; cards: number };
   dispose: () => void;
 }
@@ -75,7 +77,7 @@ function rng(seed: number) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 }
 
-export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer, opts: { quality: QualityPreset; birchPreview?: boolean; birchCards?: boolean; allBirches?: boolean }): Promise<BuiltScene> {
+export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer, opts: { quality: QualityPreset; birchPreview?: boolean; birchCards?: boolean; allBirches?: boolean; forestMix?: boolean; forestStage?: string }): Promise<BuiltScene> {
   const [data, bin] = await Promise.all([
     fetch(base + "scene.json").then((r) => r.json() as Promise<SceneData>),
     fetch(base + "scene.bin").then((r) => r.arrayBuffer()),
@@ -610,7 +612,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
   let forestW: (x: number, z: number) => number = () => 0;
   // forest-fog culling hook (set once the fog exists): true if an object of radius r at camera offset (dx, dz) is fully fogged
   let fogged: (dx: number, dz: number, r: number) => boolean = () => false;
-  {
+  if (!opts.forestMix) {
     const R = rng(4242);
     type Geo = { pos: number[]; nrm: number[]; uv: number[] };
     const G = (): Geo => ({ pos: [], nrm: [], uv: [] });
@@ -1137,6 +1139,8 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
   disposables.push(forestFog);
   // cull only well past full opacity: the field is re-marched every 0.5 m but trees are refilled every 4 m
   fogged = (dx, dz, r) => forestFog.pathMin(dx, dz, r) > qp.forestFogFar + 10;
+  const forest = opts.forestMix ? await createForestRuntime({ renderer, root, quality: qp, trees: treesArr, heightAt, roadFree, weights: splatWeights, shade, foliage, fog: forestFog, stage: opts.forestStage ?? "cards" }) : undefined;
+  if (forest) disposables.push(forest);
   root.traverse((o) => {
     const mm = (o as THREE.Mesh).material;
     if (mm) (Array.isArray(mm) ? mm : [mm]).forEach(forestFog.patch);
@@ -1164,6 +1168,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
   const update = (cam: THREE.Vector3, fwd: THREE.Vector3, lod: { detailR: number; cardR: number; grassR: number; fogFar: number }) => {
     forestFog.update(cam.x, cam.z);
     refillTrees(cam, fwd, lod.detailR, lod.cardR);
+    forest?.update(cam, fwd, lod.cardR);
     terrainTiles.forEach((t, k) => {
       t.mesh.visible = t.box.distanceToPoint(cam) < lod.fogFar && !fogged(tileC[k].c.x - cam.x, tileC[k].c.z - cam.z, tileC[k].r);
     });
@@ -1192,6 +1197,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     foliage,
     stats: { triangles: Math.round(triangles), treeInstances: treesArr.length / 6 },
     grassStats: () => grass.stats(),
+    forestStats: () => forest?.stats(),
     birchStats: () => birchCounts,
     dispose: () => disposables.forEach((d) => d.dispose()),
   };

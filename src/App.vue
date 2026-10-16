@@ -12,6 +12,8 @@
       :birch-preview="birchPreview"
       :birch-cards="birchCards"
       :all-birches="allBirches"
+      :forest-mix="forestMix"
+      :forest-stage="forestStage"
       :eye-height-m="eyeH"
       :time-s="timeS"
       :test-mode="testMode"
@@ -90,6 +92,8 @@ const procScene = "scenes/" + (q.get("scene") ?? "muritz-3k") + "/";
 const shadows = ref(q.get("shadows") !== "0");
 const quality = parseQuality(q.get("q"));
 const wind = q.get("wind") !== "0";
+const forestMix = q.get("forest") === "mix";
+const forestStage = q.get("forestStage") ?? "cards";
 const allBirches = q.get("birch") === "all";
 const birchPreview = allBirches || q.get("birch") === "1";
 const birchCards = allBirches || (birchPreview && q.get("cards") !== "0");
@@ -141,8 +145,9 @@ const segTo = computed(() => (proc.value && procSeg.value ? procSeg.value.to : l
 const shownDistance = ref(0),
   grade = ref(0),
   elev = ref(0);
-function onFrame(f: { distanceM: number; gradePct: number; groundM: number; fps?: number; calls?: number; triangles?: number; birches?: { lod0: number; lod1: number; cards?: number }; render?: { width: number; height: number } }) {
+function onFrame(f: { distanceM: number; gradePct: number; groundM: number; fps?: number; calls?: number; triangles?: number; birches?: { lod0: number; lod1: number; cards?: number }; vegetation?: { cards: number; lod0: number; lod1: number; shrubs: number; grass: number }; render?: { width: number; height: number } }) {
   if (f.fps != null) fpsText.value = `${f.fps.toFixed(0)} fps · ${f.calls} draw calls · ${((f.triangles ?? 0) / 1000).toFixed(0)}k tris · q=${quality}`;
+  if (forestMix && f.vegetation) fpsText.value += ` · forest ${f.vegetation.lod0}+${f.vegetation.lod1} · cards ${f.vegetation.cards} · shrubs ${f.vegetation.shrubs} · tufts ${f.vegetation.grass}`;
   if (allBirches) fpsText.value += " · all birch";
   if (birchPreview && f.birches) fpsText.value += ` · birch ${f.birches.lod0}+${f.birches.lod1}`;
   if (birchCards && f.birches?.cards != null) fpsText.value += ` · cards ${f.birches.cards}`;
