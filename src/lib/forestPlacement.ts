@@ -11,3 +11,11 @@ export function chooseForestSpecies(x: number, z: number, available: string[], s
   for (const id of available) { r -= weights[id] ?? 0; if (r < 0) return id; }
   return available[available.length - 1];
 }
+
+export function forestGrassRegion(x:number,z:number,roadFree:(x:number,z:number)=>number,weights:(x:number,z:number)=>number[]) {
+  const free=roadFree(x,z);if(free<0.6)return false;
+  if(free>=1&&free<=4)return true;
+  const w=weights(x,z);
+  if(w[2]>.25)return [[4,0],[-4,0],[0,4],[0,-4]].some(([dx,dz])=>weights(x+dx,z+dz)[2]<.25);
+  return w[0]>.5&&[[8,0],[-8,0],[0,8],[0,-8]].some(([dx,dz])=>weights(x+dx,z+dz)[2]>.4);
+}

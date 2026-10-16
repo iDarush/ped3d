@@ -33,6 +33,7 @@ export function createGrassField(opts: {
   segments: 2 | 3;
   heightAt: (x: number, z: number) => number;
   weights: (x: number, z: number) => number[]; // land cover [grass, soil, forest, stubble]
+  exclude?: (x: number, z: number) => boolean;
   roadFree: (x: number, z: number) => number; // metres from the ridden road edge
   grassTex: THREE.Texture; // ground grass colour (its smallest mip = mean colour)
   farTex: THREE.Texture; // satellite colour (terrain-far UVs)
@@ -198,6 +199,7 @@ if (aWoodland > 0.5) vBladeCol = col * mix(0.7, 0.94, position.y);`,
     for (let k = 0; k < n; k++) {
       const x = (ti + rnd()) * TILE,
         z = (tj + rnd()) * TILE;
+      if (opts.exclude?.(x,z)) continue;
       const [wg, ws, wf, wd] = opts.weights(x, z);
       const free = opts.roadFree(x, z);
       const woodland = wf > 0.5 && wf > wg && wf > wd;

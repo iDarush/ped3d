@@ -1152,6 +1152,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
     segments: qp.grassSegments,
     heightAt,
     weights: splatWeights,
+    exclude: forest?.grassRegion,
     roadFree,
     grassTex: T.grass,
     farTex,

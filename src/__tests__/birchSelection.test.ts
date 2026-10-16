@@ -34,3 +34,9 @@ it("uses an exit margin and reverses a fade without a coverage jump", () => {
   expect(birchBlend(s.states.get(1)!, 2.2)).toBeCloseTo(before);
   expect(birchBlend(s.states.get(1)!, 3)).toBe(1);
 });
+
+it("uses a shrub-specific detail boundary instead of the tree's 20 metres", () => {
+  const s=new BirchSelection([6,20],30,12);
+  s.update([{i:1,dd:15**2}],0);
+  expect(s.states.get(1)!.level).toBe(1);
+});
