@@ -6,7 +6,7 @@ const D = (process.env.DS ?? "3000,3700,4300,4900,5450,5850").split(",").map(Num
 const cams = (process.env.CAMS ?? "eye,chase").split(",");
 const extra = process.env.EXTRA ?? "";
 const floorStages=(process.env.FLOOR_STAGES??'').split(',').filter(Boolean);
-const variants=floorStages.length?floorStages.map(stage=>`${extra}&floor=${stage}`):[extra];
+const variants=floorStages.length?floorStages.map(stage=>{const query=new URLSearchParams(extra);query.set('floor',stage);return query.toString();}):[extra];
 const motionSeconds = Math.min(30, Math.max(0, Number(process.env.MOTION_SECONDS ?? 0) || 0));
 const motionSpeed = Number(new URLSearchParams(extra).get("speed") ?? 25);
 const warmupSeconds = Math.max(0, Math.min(30, Number(process.env.WARMUP_SECONDS ?? 2)));
@@ -31,6 +31,14 @@ for (const extra of variants)
     page.setDefaultTimeout(240000);
     if(process.env.GROUND_PROBE==='1')await page.addInitScript(()=>{
       window.__groundPrograms=[];
+      window.__groundArrays=[];
+      const storage=WebGL2RenderingContext.prototype.texStorage3D;
+      WebGL2RenderingContext.prototype.texStorage3D=function(target,levels,format,width,height,depth){
+        let estimatedBytes=0;
+        for(let level=0;level<levels;level++)estimatedBytes+=Math.max(1,width>>level)*Math.max(1,height>>level)*depth*4;
+        window.__groundArrays.push({levels,format,formatName:format===this.SRGB8_ALPHA8?'SRGB8_ALPHA8':format===this.RGBA8?'RGBA8':'other',width,height,depth,estimatedBytes});
+        return storage.call(this,target,levels,format,width,height,depth);
+      };
       const original=WebGL2RenderingContext.prototype.linkProgram;
       WebGL2RenderingContext.prototype.linkProgram=function(program){
         original.call(this,program);
@@ -91,6 +99,7 @@ for (const extra of variants)
     const ms = await page.evaluate(() => window.__rideFrameMs ?? []);
     const info = await page.evaluate(() => window.__rideInfo ?? null);
     const groundPrograms=await page.evaluate(()=>window.__groundPrograms??null);
+    const groundArrays=await page.evaluate(()=>window.__groundArrays??null);
     const gpu = await page.evaluate(() => {
       const gl = document.querySelector("canvas")?.getContext("webgl2");
       const ext = gl?.getExtension("WEBGL_debug_renderer_info");
@@ -106,7 +115,8 @@ for (const extra of variants)
     if (info?.textures != null) console.log("GPU texture objects:", info.textures);
     if (motion) console.log("Ride intervals (headless):", JSON.stringify(motion));
     if(groundPrograms)console.log('Ground programs:',JSON.stringify(groundPrograms));
-    writeFileSync(`${output}/${name}.json`, JSON.stringify({ startDistanceM: d, camera: cam, extra, viewport: page.viewportSize(), dpr: Number(process.env.DPR ?? 1), warmupSeconds, motionSeconds, gpu, info, motion, groundPrograms, errors }, null, 2));
+    if(groundArrays)console.log('Ground array storage:',JSON.stringify(groundArrays));
+    writeFileSync(`${output}/${name}.json`, JSON.stringify({ startDistanceM: d, camera: cam, extra, viewport: page.viewportSize(), dpr: Number(process.env.DPR ?? 1), warmupSeconds, motionSeconds, gpu, info, motion, groundPrograms, groundArrays, errors }, null, 2));
     if(groundPrograms?.some(p=>!p.linked||p.count>p.fragmentLimit))failures++;
     if (errors.some((e) => !e.startsWith("warning"))) failures++;
     await page.close();

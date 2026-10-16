@@ -276,7 +276,7 @@ vec3 grass = tileTex(uGrass, vWPos.xz);
 float mossPatch = 0.0;
 if (sp.b > 0.01) mossPatch = smoothstep(0.38, 0.72, shNoise(vWPos.xz / 4.5) * 0.7 + shNoise(vWPos.xz / 1.3) * 0.3);
 vec2 groundShade=texture2D(uShade,(vWPos.xz-uShadeO)/uShadeS).rg;
-${floorArrays?floorColorGlsl(floorMode):''}
+${floorArrays?floorColorGlsl(floorMode,!opts.quality.liteTrees):''}
 vec3 col = grass * sp.r
   + tileTex(uSoil, vWPos.xz) * sp.g
   + ${floorArrays?'forestc':'mix(tileTex(uForest, vWPos.xz), tileTex(uMoss, vWPos.xz * 0.7), 0.08 + mossPatch * 0.55)'} * 0.55 * sp.b
@@ -325,7 +325,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
 #endif`,
         );
     };
-    m.customProgramCacheKey=()=>`terrain-floor-${floorMode}`;
+    m.customProgramCacheKey=()=>`terrain-floor-${floorMode}-${opts.quality.liteTrees?'coarse':'fine'}`;
     addTiled(g, m, 200, "terrain-near", true);
   }
 

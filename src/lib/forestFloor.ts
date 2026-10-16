@@ -6,15 +6,23 @@ export function parseForestFloor(value: string | null, enabled = true): ForestFl
   return value==='base'||value==='leaves'||value==='cover'?value:'full';
 }
 export const FLOOR_LAYERS = ['forestfloor','forest_grass','forest_leaves','forest_rock'] as const;
+export const FLOOR_ROTATIONS: readonly (readonly [number,number])[] = [[1,0],[0.6,0.8],[-0.28,0.96],[0.96,-0.28]];
 
 /** Raw data textures cannot use UNPACK_FLIP_Y. Match TextureLoader's flipY
  * while preserving RGB and copying linear height/AO into the alpha channel. */
-export function packFloorLayer(rgb: Uint8ClampedArray, alpha: Uint8ClampedArray, size: number) {
+export function packFloorLayer(rgb: Uint8ClampedArray, alpha: Uint8ClampedArray, size: number, rotation?: readonly [number,number]) {
   if(rgb.length!==size*size*4||alpha.length!==rgb.length)throw new Error('Invalid floor layer dimensions');
   const out=new Uint8Array(rgb.length);
   for(let y=0;y<size;y++)for(let x=0;x<size;x++){
     const from=(y*size+x)*4,to=((size-1-y)*size+x)*4;
     out[to]=rgb[from];out[to+1]=rgb[from+1];out[to+2]=rgb[from+2];out[to+3]=alpha[from];
+    // Bake inverse UV rotation into tangent normals once, instead of rotating
+    // sampled normals per fragment. Layer0 remains byte-identical.
+    if(rotation&&(rotation[0]!==1||rotation[1]!==0)){
+      const nx=rgb[from]/127.5-1,ny=rgb[from+1]/127.5-1,[c,s]=rotation;
+      out[to]=Math.round(Math.max(0,Math.min(255,(c*nx+s*ny+1)*127.5)));
+      out[to+1]=Math.round(Math.max(0,Math.min(255,(-s*nx+c*ny+1)*127.5)));
+    }
   }
   return out;
 }
@@ -28,7 +36,7 @@ export async function loadForestFloor(base: string, normals: boolean, normalSize
     if(!context)throw new Error('Canvas unavailable for forest floor arrays');
     const pixels=(image:HTMLImageElement)=>{context.drawImage(image,0,0,size,size);return context.getImageData(0,0,size,size).data;};
     const data=new Uint8Array(size*size*4*FLOOR_LAYERS.length);
-    images.forEach(([rgb,alpha],i)=>data.set(packFloorLayer(pixels(rgb),pixels(alpha),size),i*size*size*4));
+    images.forEach(([rgb,alpha],i)=>data.set(packFloorLayer(pixels(rgb),pixels(alpha),size,suffix==='_n'?FLOOR_ROTATIONS[i]:undefined),i*size*size*4));
     const texture=new THREE.DataArrayTexture(data,size,size,FLOOR_LAYERS.length);
     texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
     texture.minFilter=THREE.LinearMipmapLinearFilter;texture.magFilter=THREE.LinearFilter;
@@ -53,7 +61,7 @@ uniform sampler2DArray uFloorN;
 #endif
 const vec4 FL_TILE=vec4(2.2,1.2,1.4,2.6);
 vec2 flRotation(int layer){
- return layer==1?vec2(0.6,0.8):layer==2?vec2(-0.28,0.96):layer==3?vec2(0.96,-0.28):vec2(1.0,0.0);
+ return ${FLOOR_ROTATIONS.slice(1).map((r,i)=>`layer==${i+1}?vec2(${r.map(n=>n.toFixed(8)).join(',')}):`).join('')}vec2(1.0,0.0);
 }
 vec2 flTurn(vec2 p,int layer){vec2 r=flRotation(layer);return mat2(r.x,r.y,-r.y,r.x)*p;}
 vec4 flSample(sampler2DArray tex,vec2 p,int layer,vec2 dx,vec2 dy){
@@ -66,8 +74,8 @@ float flBlend(float mask,float baseHeight,float layerHeight){
 }
 `;
 
-// Initially an exact color-path replacement of tileTex(uForest,...).
-export function floorColorGlsl(mode: ForestFloorMode) {
+// Base is an exact color-path replacement; later stages share the same samples.
+export function floorColorGlsl(mode: ForestFloorMode, fineNoise = true) {
   const cover=mode==='cover'||mode==='full';
   return `
 vec3 flW=vec3(0.0);
@@ -90,7 +98,7 @@ if(sp.b>0.0){
    flW.z=flBlend(flRock,flHeight,layer.a);
    flColor=mix(flColor,layer.rgb,flW.z);flHeight=mix(flHeight,layer.a,flW.z);
   }`:''}
-  float flLeaves=smoothstep(0.62,0.69,shNoise(fwp/4.0+11.0)*0.5+shNoise(fwp/1.3+3.0)*0.35+shNoise(fwp/0.45)*0.15+0.2*groundShade.r+0.3*groundShade.g-0.12)*flFade;
+  float flLeaves=smoothstep(0.62,0.69,${fineNoise?'shNoise(fwp/4.0+11.0)*0.5+shNoise(fwp/1.3+3.0)*0.35+shNoise(fwp/0.45)*0.15':'shNoise(fwp/4.0+11.0)*0.5882353+shNoise(fwp/1.3+3.0)*0.4117647'}+0.2*groundShade.r+0.3*groundShade.g-0.12)*flFade;
   if(flLeaves>0.002){
    vec4 layer=flSample(uFloor,fwp,2,flDx,flDy);
    flW.y=flBlend(flLeaves,flHeight,layer.a);
@@ -98,7 +106,7 @@ if(sp.b>0.0){
    flW.z*=1.0-flW.y;
   }
   ${cover?`
-  float flGrass=smoothstep(0.46,0.54,shNoise(fwp/9.0-7.0)*0.55+shNoise(fwp/3.0+9.0)*0.3+shNoise(fwp/0.6)*0.15+0.45*(1.0-groundShade.r)-0.25*groundShade.g-0.18)*flFade;
+  float flGrass=smoothstep(0.46,0.54,${fineNoise?'shNoise(fwp/9.0-7.0)*0.55+shNoise(fwp/3.0+9.0)*0.3+shNoise(fwp/0.6)*0.15':'shNoise(fwp/9.0-7.0)*0.6470588+shNoise(fwp/3.0+9.0)*0.3529412'}+0.45*(1.0-groundShade.r)-0.25*groundShade.g-0.18)*flFade;
   if(flGrass>0.002){
    vec4 layer=flSample(uFloor,fwp,1,flDx,flDy);
    flW.x=flBlend(flGrass,flHeight,layer.a);
@@ -110,6 +118,22 @@ if(sp.b>0.0){
 }
 `;
 }
-export function floorNormalGlsl(_mode: ForestFloorMode) {
-  return 'vec3 nF=flSample(uFloorN,fwp,0,flDx,flDy).xyz*2.0-1.0;';
+export function floorNormalGlsl(mode: ForestFloorMode) {
+  if(mode!=='full')return 'vec3 nF=flSample(uFloorN,fwp,0,flDx,flDy).xyz*2.0-1.0;';
+  return `
+vec3 nF=vec3(0.0,0.0,1.0);
+if(sp.b>0.01){
+ vec4 flN0=flSample(uFloorN,fwp,0,flDx,flDy);
+ float flBaseWeight=max(0.0,1.0-dot(flW,vec3(1.0)));
+ nF=(flN0.xyz*2.0-1.0)*flBaseWeight;
+ float flAO=flN0.a*flBaseWeight;
+ // flW already contains FINAL composited weights. Use a weighted sum, not
+ // another sequential mix that would attenuate leaves/rock a second time.
+ ${[1,2,3].map((layer,i)=>`if(flW[${i}]>0.002){
+  vec4 layer=flSample(uFloorN,fwp,${layer},flDx,flDy);
+  nF+=(layer.xyz*2.0-1.0)*flW[${i}];flAO+=layer.a*flW[${i}];
+ }`).join('\n')}
+ diffuseColor.rgb*=mix(1.0,clamp(flAO,0.0,1.0),0.5*sp.b*(1.0-blendFar)*flFade);
+}
+`;
 }
