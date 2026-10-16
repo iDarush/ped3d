@@ -13,6 +13,17 @@ it('suppresses a short landcover glitch using world-fixed majority samples',()=>
   expect(v.sample(0,-4).kind).toBe('forest');
   for(let x=-2;x<=2;x+=.2)expect(v.sample(x,-4).field).toBe(0);
 });
+it('skips pure forest tiles without omitting a tile containing dry field groups',()=>{
+  const forest=createFieldVerge(road(),()=>[0,0,1,0]);
+  const field=createFieldVerge(road(),()=>[0,1,0,0]);
+  let found=0;
+  for(let x=-12;x<=12;x++)for(let z=-2;z<=1;z++){
+    expect(forest.hasFieldTile!(x,z)).toBe(false);
+    const tufts=fieldVergeTufts(x,z,1.7,field.sample);
+    if(tufts.length){expect(field.hasFieldTile!(x,z)).toBe(true);found++;}
+  }
+  expect(found).toBeGreaterThan(20);
+});
 it('keeps dry groups stable across tile order/borders, off asphalt, and denser for C',()=>{
   const sample=(x:number,z:number)=>({kind:'field' as const,field:1,free:Math.abs(z)-2.5,shoulder:Math.abs(z)-2.9});
   const tiles:[number,number][]=[...Array.from({length:30},(_,i):[number,number]=>[i-15,-1]),...Array.from({length:30},(_,i):[number,number]=>[i-15,0])];

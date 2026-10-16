@@ -4,14 +4,16 @@ import { forestHash, forestGrassRegion, treeRootRing } from './forestPlacement';
 import type { CanopyShade } from './canopyShade';
 import type { Foliage } from './foliage';
 import type { ForestFog } from './forestFog';
+import { fieldVergeTufts, type FieldVerge, type FieldTuft } from './fieldVerge';
 
-export function createForestGrass(o:{assets:ForestAsset[];roots?:readonly {x:number;z:number}[];vergeEnabled?:boolean;root:THREE.Group;radius:number;density:number;normals:boolean;heightAt:(x:number,z:number)=>number;roadFree:(x:number,z:number)=>number;weights:(x:number,z:number)=>number[];shade:CanopyShade;foliage:Foliage;fog:ForestFog}) {
+export function createForestGrass(o:{assets:ForestAsset[];roots?:readonly {x:number;z:number}[];vergeEnabled?:boolean;fieldVerge?:FieldVerge;fieldDensity?:number;antialias?:boolean;root:THREE.Group;radius:number;density:number;normals:boolean;heightAt:(x:number,z:number)=>number;roadFree:(x:number,z:number)=>number;weights:(x:number,z:number)=>number[];shade:CanopyShade;foliage:Foliage;fog:ForestFog}) {
   const assets=o.assets.filter(a=>a.entry.role==='grass'&&a.models.length);
-  const extra:{dispose():void}[]=[],slots:{mesh:THREE.InstancedMesh;rank:THREE.InstancedBufferAttribute;n:number;id:string;variant:number}[]=[];
+  const extra:{dispose():void}[]=[],slots:{mesh:THREE.InstancedMesh;rank:THREE.InstancedBufferAttribute;n:number;id:string;variant:number;dry:boolean}[]=[];
   const capacity=Math.ceil(Math.PI*(o.radius+4)**2/0.64*1.1)+(o.roots?.length?Math.ceil(Math.PI*(o.radius+4)**2/16)*6:0);
-  for(const asset of assets) {
-    const source=asset.models[0][0][0].material;
+  for(const asset of assets)for(const batch of [{dry:!!asset.entry.dryOnly,parts:asset.models.map(levels=>levels[0])},...(asset.dryModels?.length?[{dry:true,parts:asset.dryModels}]:[])]) {
+    const source=batch.parts[0][0].material;
     const mat=new THREE.MeshLambertMaterial({map:source.map,normalMap:o.normals?source.normalMap:null,side:THREE.DoubleSide,alphaTest:0.5});extra.push(mat);
+    if(batch.dry||asset.entry.fieldOnly)mat.alphaToCoverage=!!o.antialias;
     mat.onBeforeCompile=sh=>{sh.fragmentShader=sh.fragmentShader.replace('#include <normal_fragment_begin>',THREE.ShaderChunk.normal_fragment_begin.replace('float faceDirection = gl_FrontFacing ? 1.0 : - 1.0;','float faceDirection = 1.0;'));};
     o.shade.patch(mat,4);o.foliage.patch(mat,3);o.fog.patch(mat);
     const prev=mat.onBeforeCompile,cache=mat.customProgramCacheKey();
@@ -27,23 +29,28 @@ float gn=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(0.06711056,0.00583715))
 if(gn>=vGrassCoverage)discard;`).replace('#include <lights_fragment_begin>','#include <lights_fragment_begin>\nreflectedLight.indirectDiffuse+=diffuseColor.rgb*0.25;');
     };
     mat.customProgramCacheKey=()=>cache+'|forest-grass-'+o.radius;
-    for(let variant=0;variant<asset.models.length;variant++) for(const part of asset.models[variant][0]) {
+    for(let variant=0;variant<batch.parts.length;variant++) for(const part of batch.parts[variant]) {
       const geo=part.geometry.clone();extra.push(geo);
-      const rank=new THREE.InstancedBufferAttribute(new Float32Array(capacity*2),2);geo.setAttribute('grassRank',rank);
-      const mesh=new THREE.InstancedMesh(geo,mat,capacity);mesh.count=0;mesh.frustumCulled=false;mesh.name=`forest-${asset.entry.id}-${variant}`;
-      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);o.root.add(mesh);extra.push(mesh);slots.push({mesh,rank,n:0,id:asset.entry.id,variant});
+      const rank=new THREE.InstancedBufferAttribute(new Float32Array(capacity*2),2);rank.setUsage(THREE.DynamicDrawUsage);geo.setAttribute('grassRank',rank);
+      const mesh=new THREE.InstancedMesh(geo,mat,capacity);mesh.count=0;mesh.frustumCulled=false;mesh.name=`forest-${asset.entry.id}-${variant}${batch.dry?'-dry':''}`;
+      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);o.root.add(mesh);extra.push(mesh);slots.push({mesh,rank,n:0,id:asset.entry.id,variant,dry:batch.dry});
     }
   }
   const rootCells=new Map<string,{x:number;z:number}[]>();
   for(const tree of o.roots??[]){const key=`${Math.floor(tree.x/8)},${Math.floor(tree.z/8)}`;let list=rootCells.get(key);if(!list)rootCells.set(key,list=[]);list.push(tree);}
   const region=(x:number,z:number)=>{
     if(!assets.length)return false;
-    if(o.vergeEnabled!==false&&forestGrassRegion(x,z,o.roadFree,o.weights))return true;
+    if(o.vergeEnabled!==false){
+      const v=o.fieldVerge?.sample(x,z);
+      // The old bright blades must not refill gaps between dry field groups.
+      if(v?.kind==='field'){if(v.free>=.6&&v.free<=8)return true;}
+      else if(forestGrassRegion(x,z,o.roadFree,o.weights))return true;
+    }
     const ix=Math.floor(x/8),iz=Math.floor(z/8);
     for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(const tree of rootCells.get(`${ix+a},${iz+b}`)??[])if((tree.x-x)**2+(tree.z-z)**2<1.5**2)return true;
     return false;
   };
-  type Tuft={x:number;z:number;matrix:Float32Array;rank:number;root:boolean;slots:typeof slots};
+  type Tuft={x:number;z:number;matrix:Float32Array;rank:number;root:boolean;field:boolean;dry:boolean;id:string;slots:typeof slots};
   const tiles=new Map<string,Tuft[]>();
   const regionCache=new Map<string,boolean>();
   const exactRegion=region;
@@ -55,14 +62,18 @@ if(gn>=vGrassCoverage)discard;`).replace('#include <lights_fragment_begin>','#in
     const key=`${ix},${iz}`,cached=tiles.get(key);if(cached)return cached;
     const out:Tuft[]=[];
     const matrix=new THREE.Matrix4(),q=new THREE.Quaternion(),up=new THREE.Vector3(0,1,0);
-    const append=(x:number,z:number,scale:number,yaw:number,root:boolean)=>{
+    const append=(x:number,z:number,scale:number,yaw:number,root:boolean,choice?:FieldTuft)=>{
       if(o.roadFree(x,z)<.6)return;
       const lolium=assets.find(a=>a.entry.id==='lolium'),setaria=assets.find(a=>a.entry.id==='setaria');
-      const asset=lolium&&setaria?(forestHash(x,z,124)<.7?lolium:setaria):(lolium??setaria??assets[0]);
-      const variant=Math.floor(forestHash(x,z,125)*asset.models.length);
+      const asset=choice?assets.find(a=>a.entry.id===choice.id):lolium&&setaria?(forestHash(x,z,124)<.7?lolium:setaria):(lolium??setaria??assets[0]);
+      if(!asset)return;
+      const variant=choice?choice.variant%asset.models.length:Math.floor(forestHash(x,z,125)*asset.models.length),dry=!!choice?.dry;
+      const targets=slots.filter(s=>s.id===asset.entry.id&&s.variant===variant&&s.dry===dry);
+      if(!targets.length)return;
       matrix.compose(new THREE.Vector3(x,o.heightAt(x,z)-.015,z),q.setFromAxisAngle(up,yaw),new THREE.Vector3(scale,scale,scale));
-      out.push({x,z,matrix:new Float32Array(matrix.elements),rank:forestHash(x,z,128)*0.875,root,slots:slots.filter(s=>s.id===asset.entry.id&&s.variant===variant)});
+      out.push({x,z,matrix:new Float32Array(matrix.elements),rank:forestHash(x,z,128)*0.875,root,field:!!choice,dry,id:asset.entry.id,slots:targets});
     };
+    if(o.vergeEnabled!==false&&o.fieldVerge&&(!o.fieldVerge.hasFieldTile||o.fieldVerge.hasFieldTile(ix,iz)))for(const p of fieldVergeTufts(ix,iz,o.fieldDensity??1.7,o.fieldVerge.sample))append(p.x,p.z,p.scale,p.yaw,false,p);
     if(o.vergeEnabled!==false)for(let gx=ix*10;gx<(ix+1)*10;gx++)for(let gz=iz*10;gz<(iz+1)*10;gz++) {
       const ax=gx*.8,az=gz*.8;
       if(forestHash(ax,az,121)>o.density*.64)continue;
@@ -70,6 +81,9 @@ if(gn>=vGrassCoverage)discard;`).replace('#include <lights_fragment_begin>','#in
       // Rings have their own fixed population; don't generate a random carpet
       // inside a ring solely because the old blade-exclusion mask covers it.
       if(!forestGrassRegion(x,z,o.roadFree,o.weights))continue;
+      const v=o.fieldVerge?.sample(x,z);
+      if(v?.kind==='field')continue;
+      if(v&&v.kind!=='forest'&&forestHash(ax,az,121)>o.density*.64*.7)continue;
       append(x,z,.8+forestHash(x,z,126)*.6,forestHash(x,z,127)*Math.PI*2,false);
     }
     for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(const tree of rootCells.get(`${ix+a},${iz+b}`)??[]) {
@@ -80,10 +94,10 @@ if(gn>=vGrassCoverage)discard;`).replace('#include <lights_fragment_begin>','#in
     }
     tiles.set(key,out);return out;
   };
-  let lastX=Infinity,lastZ=Infinity,count=0,rootCount=0;
+  let lastX=Infinity,lastZ=Infinity,count=0,rootCount=0,fieldCount=0,dryCount=0,fieldSpecies:Record<string,number>={};
   const update=(cam:THREE.Vector3)=>{
     if(Math.hypot(cam.x-lastX,cam.z-lastZ)<2)return;
-    lastX=cam.x;lastZ=cam.z;rootCount=0;for(const s of slots)s.n=0;
+    lastX=cam.x;lastZ=cam.z;rootCount=0;fieldCount=0;dryCount=0;fieldSpecies={};for(const s of slots)s.n=0;
     if(!assets.length)return;
     const r=o.radius+4;
     if(tiles.size>256)for(const key of tiles.keys()){const [x,z]=key.split(',').map(Number);if(Math.hypot(x*8+4-cam.x,z*8+4-cam.z)>r+12)tiles.delete(key);}
@@ -93,10 +107,19 @@ if(gn>=vGrassCoverage)discard;`).replace('#include <lights_fragment_begin>','#in
         const pr=(p.root?Math.min(35,o.radius):o.radius)+4;
         if((p.x-cam.x)**2+(p.z-cam.z)**2>pr*pr)continue;
         if(p.root)rootCount++;
+        if(p.field){fieldCount++;if(p.dry)dryCount++;fieldSpecies[p.id]=(fieldSpecies[p.id]??0)+1;}
         for(const s of p.slots){(s.mesh.instanceMatrix.array as Float32Array).set(p.matrix,s.n*16);s.rank.setXY(s.n,p.rank,p.root?Math.min(35,o.radius):o.radius);s.n++;}
       }
     }
-    count=0;for(const s of slots){s.mesh.count=s.n;s.mesh.visible=s.n>0;s.mesh.instanceMatrix.needsUpdate=true;s.rank.needsUpdate=true;count+=s.n;}
+    count=0;for(const s of slots){
+      s.mesh.count=s.n;s.mesh.visible=s.n>0;
+      s.mesh.instanceMatrix.clearUpdateRanges();s.rank.clearUpdateRanges();
+      if(s.n){
+        s.mesh.instanceMatrix.addUpdateRange(0,s.n*16);s.rank.addUpdateRange(0,s.n*2);
+        s.mesh.instanceMatrix.needsUpdate=true;s.rank.needsUpdate=true;
+      }
+      count+=s.n;
+    }
   };
-  return {update,region:cachedRegion,stats:()=>count,rootStats:()=>rootCount,dispose:()=>{for(const s of slots)o.root.remove(s.mesh);extra.forEach(x=>x.dispose());}};
+  return {update,region:cachedRegion,stats:()=>count,rootStats:()=>rootCount,fieldStats:()=>({tufts:fieldCount,dry:dryCount,species:{...fieldSpecies}}),dispose:()=>{for(const s of slots)o.root.remove(s.mesh);extra.forEach(x=>x.dispose());}};
 }

@@ -2,6 +2,7 @@
 export type Quality = "low" | "med" | "high";
 
 export interface QualityPreset {
+  fieldVergeDensity: 1 | 1.7;
   /** cap for devicePixelRatio */
   pixelRatio: number;
   /** Drawing-buffer pixel budget, independent of CSS window size. */
@@ -44,9 +45,9 @@ export interface QualityPreset {
 }
 
 export const QUALITY: Record<Quality, QualityPreset> = {
-  low: { forestGrassR: 22, forestGrassDensity: 0.7, forestShrubDetailCount: 3, forestShrubSimpleCount: 8, forestShrubCardR: 80, pixelRatio: 1, maxPixels: 921600, birchDetailCount: 2, birchSimpleCount: 4, birchCardNear: 25, birchCardFar: 180, birchCardFade: 3, birchShadows: false, shadows: false, shadowMap: 1024, shadowHalf: 40, detailR: 45, cardR: 900, grassR: 22, grassDensity: 28, grassSegments: 2, grassShadows: false, liteTrees: true, forestFogFar: 110, antialias: false, groundNormals: false },
-  med: { forestGrassR: 35, forestGrassDensity: 1, forestShrubDetailCount: 6, forestShrubSimpleCount: 20, forestShrubCardR: 120, pixelRatio: 1.25, maxPixels: 1440000, birchDetailCount: 3, birchSimpleCount: 8, birchCardNear: 40, birchCardFar: 300, birchCardFade: 4, birchShadows: false, shadows: true, shadowMap: 1024, shadowHalf: 45, detailR: 70, cardR: 1600, grassR: 32, grassDensity: 32, grassSegments: 2, grassShadows: false, liteTrees: true, forestFogFar: 140, antialias: true, groundNormals: true },
-  high: { forestGrassR: 45, forestGrassDensity: 1.2, forestShrubDetailCount: 8, forestShrubSimpleCount: 24, forestShrubCardR: 160, pixelRatio: 2, maxPixels: 8294400, birchDetailCount: 8, birchSimpleCount: 16, birchCardNear: 60, birchCardFar: 400, birchCardFade: 6, birchShadows: true, shadows: true, shadowMap: 2048, shadowHalf: 90, detailR: 120, cardR: 2600, grassR: 60, grassDensity: 55, grassSegments: 3, grassShadows: true, liteTrees: false, forestFogFar: 190, antialias: true, groundNormals: true },
+  low: { fieldVergeDensity: 1, forestGrassR: 22, forestGrassDensity: 0.7, forestShrubDetailCount: 3, forestShrubSimpleCount: 8, forestShrubCardR: 80, pixelRatio: 1, maxPixels: 921600, birchDetailCount: 2, birchSimpleCount: 4, birchCardNear: 25, birchCardFar: 180, birchCardFade: 3, birchShadows: false, shadows: false, shadowMap: 1024, shadowHalf: 40, detailR: 45, cardR: 900, grassR: 22, grassDensity: 28, grassSegments: 2, grassShadows: false, liteTrees: true, forestFogFar: 110, antialias: false, groundNormals: false },
+  med: { fieldVergeDensity: 1.7, forestGrassR: 35, forestGrassDensity: 1, forestShrubDetailCount: 6, forestShrubSimpleCount: 20, forestShrubCardR: 120, pixelRatio: 1.25, maxPixels: 1440000, birchDetailCount: 3, birchSimpleCount: 8, birchCardNear: 40, birchCardFar: 300, birchCardFade: 4, birchShadows: false, shadows: true, shadowMap: 1024, shadowHalf: 45, detailR: 70, cardR: 1600, grassR: 32, grassDensity: 32, grassSegments: 2, grassShadows: false, liteTrees: true, forestFogFar: 140, antialias: true, groundNormals: true },
+  high: { fieldVergeDensity: 1.7, forestGrassR: 45, forestGrassDensity: 1.2, forestShrubDetailCount: 8, forestShrubSimpleCount: 24, forestShrubCardR: 160, pixelRatio: 2, maxPixels: 8294400, birchDetailCount: 8, birchSimpleCount: 16, birchCardNear: 60, birchCardFar: 400, birchCardFade: 6, birchShadows: true, shadows: true, shadowMap: 2048, shadowHalf: 90, detailR: 120, cardR: 2600, grassR: 60, grassDensity: 55, grassSegments: 3, grassShadows: true, liteTrees: false, forestFogFar: 190, antialias: true, groundNormals: true },
 };
 
 export function parseQuality(v: string | null | undefined): Quality {

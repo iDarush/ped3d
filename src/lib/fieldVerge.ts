@@ -2,7 +2,7 @@ import { forestHash } from './forestPlacement';
 
 export type VergeKind='field'|'forest'|'meadow';
 export interface VergeSample { kind:VergeKind; field:number; free:number; shoulder:number }
-export interface FieldVerge { sample:(x:number,z:number)=>VergeSample }
+export interface FieldVerge { sample:(x:number,z:number)=>VergeSample; hasFieldTile?:(ix:number,iz:number)=>boolean }
 export function vergeKind(w:readonly number[]):VergeKind {
   if(w[2]>.25)return 'forest';
   return w[1]>.5&&w[2]<.25?'field':'meadow';
@@ -12,7 +12,7 @@ export function vergeKind(w:readonly number[]):VergeKind {
  * along route distance -10/0/+10 m is independent of camera position/refills.
  * A segment grid gives exact edge distance without scallops between samples. */
 export function createFieldVerge(track:Float32Array,weights:(x:number,z:number)=>number[]):FieldVerge {
-  const count=track.length/6,grid=new Map<string,number[]>(),size=16;
+  const count=track.length/6,grid=new Map<string,number[]>(),fieldTiles=new Set<string>(),size=16;
   const raw:VergeKind[][]=[[],[]],smooth:VergeKind[][]=[[],[]];
   const at=(distance:number)=>{
     let lo=0,hi=count-1;
@@ -37,12 +37,17 @@ export function createFieldVerge(track:Float32Array,weights:(x:number,z:number)=
   for(let i=0;i<count-1;i++){
     const x=track[i*6],z=track[i*6+2],xx=track[(i+1)*6],zz=track[(i+1)*6+2];
     const pad=Math.max(track[i*6+4],track[(i+1)*6+4])/2+12;
+    if(smooth.some(side=>side[i]==='field'||side[i+1]==='field')){
+      const fieldPad=pad-12+2.601;
+      for(let gx=Math.floor((Math.min(x,xx)-fieldPad)/8);gx<=Math.floor((Math.max(x,xx)+fieldPad)/8);gx++)
+        for(let gz=Math.floor((Math.min(z,zz)-fieldPad)/8);gz<=Math.floor((Math.max(z,zz)+fieldPad)/8);gz++)fieldTiles.add(`${gx},${gz}`);
+    }
     for(let gx=Math.floor((Math.min(x,xx)-pad)/size);gx<=Math.floor((Math.max(x,xx)+pad)/size);gx++)
       for(let gz=Math.floor((Math.min(z,zz)-pad)/size);gz<=Math.floor((Math.max(z,zz)+pad)/size);gz++){
         const key=`${gx},${gz}`;let list=grid.get(key);if(!list)grid.set(key,list=[]);list.push(i);
       }
   }
-  return {sample:(x,z)=>{
+  return {hasFieldTile:(ix,iz)=>fieldTiles.has(`${ix},${iz}`),sample:(x,z)=>{
     let best=Infinity,index=-1,fraction=0,px=0,pz=0,tx=0,tz=0;
     for(const i of grid.get(`${Math.floor(x/size)},${Math.floor(z/size)}`)??[]){
       const ax=track[i*6],az=track[i*6+2],dx=track[(i+1)*6]-ax,dz=track[(i+1)*6+2]-az,l2=dx*dx+dz*dz;

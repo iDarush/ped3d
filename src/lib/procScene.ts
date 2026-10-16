@@ -1160,7 +1160,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
   disposables.push(forestFog);
   // cull only well past full opacity: the field is re-marched every 0.5 m but trees are refilled every 4 m
   fogged = (dx, dz, r) => forestFog.pathMin(dx, dz, r) > qp.forestFogFar + 10;
-  const forest = opts.forestMix ? await createForestRuntime({ renderer, root, quality: qp, trees: treesArr, heightAt, roadFree, weights: splatWeights, shade, foliage, fog: forestFog, stage: opts.forestStage ?? "full", grounding: opts.treeGrounding ?? "full" }) : undefined;
+  const forest = opts.forestMix ? await createForestRuntime({ renderer, root, quality: qp, trees: treesArr, heightAt, roadFree, weights: splatWeights, shade, foliage, fog: forestFog, stage: opts.forestStage ?? "full", grounding: opts.treeGrounding ?? "full", fieldVerge }) : undefined;
   if (forest) disposables.push(forest);
   root.traverse((o) => {
     const mm = (o as THREE.Mesh).material;
