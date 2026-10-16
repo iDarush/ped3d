@@ -93,7 +93,7 @@ const shadows = ref(q.get("shadows") !== "0");
 const quality = parseQuality(q.get("q"));
 const wind = q.get("wind") !== "0";
 const forestMix = q.get("forest") === "mix";
-const forestStage = q.get("forestStage") ?? "cards";
+const forestStage = q.get("forestStage") ?? "trees";
 const allBirches = q.get("birch") === "all";
 const birchPreview = allBirches || q.get("birch") === "1";
 const birchCards = allBirches || (birchPreview && q.get("cards") !== "0");

@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { loadForestAssets, type ForestAsset } from './forestAssets';
+import { BirchSelection, birchBlend } from './birchSelection';
+import { patchBirchBlend } from './birchLod';
 import { forestHash, chooseForestSpecies } from './forestPlacement';
 import type { QualityPreset } from './quality';
 import type { CanopyShade } from './canopyShade';
@@ -8,9 +10,12 @@ import type { ForestFog } from './forestFog';
 
 export interface ForestStats { trees: number; cards: number; lod0: number; lod1: number; shrubs: number; grass: number; species: string[] }
 interface Plant { id: number; x: number; y: number; z: number; yaw: number; scale: number; row: number; asset: ForestAsset; matrix: THREE.Matrix4 }
-interface Slot { mesh: THREE.InstancedMesh; n: number; row: THREE.InstancedBufferAttribute; yaw: THREE.InstancedBufferAttribute }
+interface Slot { mesh: THREE.InstancedMesh; n: number; row: THREE.InstancedBufferAttribute; yaw: THREE.InstancedBufferAttribute; blend: THREE.InstancedBufferAttribute }
 export async function createForestRuntime(o: { renderer: THREE.WebGLRenderer; root: THREE.Group; quality: QualityPreset; trees: Float32Array; heightAt: (x: number,z: number) => number; roadFree: (x: number,z: number) => number; weights: (x: number,z: number) => number[]; shade: CanopyShade; foliage: Foliage; fog: ForestFog; stage: string }) {
-  const resources = await loadForestAssets(o.renderer, ['tree'], false);
+  const modelsEnabled = o.stage !== 'cards';
+  const time = { value: 0 };
+  const selection = new BirchSelection([o.quality.birchDetailCount,o.quality.birchSimpleCount], Math.min(o.quality.detailR,o.quality.birchCardNear+o.quality.birchCardFade/2));
+  const resources = await loadForestAssets(o.renderer, ['tree'], modelsEnabled);
   const assets = resources.assets.filter(a => a.entry.role === 'tree' && a.card && a.meta);
   if (!assets.length) { resources.dispose(); throw new Error('forest=mix requires at least one tree species with cards'); }
   const extra: { dispose(): void }[] = [];
@@ -64,22 +69,55 @@ vNormalMapUv += vec2(fu,forestRow*${cellV.toFixed(9)});
       sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>','#include <lights_fragment_begin>\nreflectedLight.indirectDiffuse += diffuseColor.rgb*0.25;');
     };
     material.customProgramCacheKey=()=>cacheKey+'|forest-atlas-'+asset.entry.id;
+    if (modelsEnabled) patchBirchBlend(material,true,time);
     const geometry=source.geometry.clone(); extra.push(geometry);
     const uv=geometry.getAttribute('uv'), plane=new Float32Array(uv.count);
     for(let i=0;i<uv.count;i+=4) { const col=Math.round(Math.min(...[0,1,2,3].map(j=>uv.getX(i+j)))/cellU); for(let j=0;j<4;j++) plane[i+j]=col; }
     geometry.setAttribute('forestPlane',new THREE.BufferAttribute(plane,1));
     const row=new THREE.InstancedBufferAttribute(new Float32Array(count),1), yaw=new THREE.InstancedBufferAttribute(new Float32Array(count),1);
+    const blend=new THREE.InstancedBufferAttribute(new Float32Array(count*3),3);
+    geometry.setAttribute('birchBlend',blend);
     geometry.setAttribute('forestRow',row); geometry.setAttribute('forestYaw',yaw);
     const mesh=new THREE.InstancedMesh(geometry,material,count); mesh.frustumCulled=false; mesh.count=0;
     mesh.name='forest-'+asset.entry.id+'-cross'; mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); o.root.add(mesh); extra.push(mesh);
-    slots.set(asset.entry.id,{mesh,n:0,row,yaw});
+    slots.set(asset.entry.id,{mesh,n:0,row,yaw,blend});
+  }
+  type ModelSlot = { mesh: THREE.InstancedMesh; n: number; blend: THREE.InstancedBufferAttribute };
+  const modelSlots = new Map<string,ModelSlot[]>();
+  const patched = new Set<THREE.Material>();
+  for(const asset of assets) for(let variant=0;variant<asset.models.length;variant++) for(let level=0;level<asset.models[variant].length;level++) {
+    const capacity=level===0?o.quality.birchDetailCount:o.quality.birchSimpleCount;
+    const group: ModelSlot[]=[];
+    for(const part of asset.models[variant][level]) {
+      const material=part.material, leaf=material.alphaTest>0;
+      if(!patched.has(material)) {
+        patched.add(material);
+        if(o.quality.liteTrees && leaf) material.normalMap=null;
+        material.alphaToCoverage=leaf&&o.quality.antialias;
+        if(leaf) material.onBeforeCompile=sh=>{sh.fragmentShader=sh.fragmentShader.replace('#include <normal_fragment_begin>',THREE.ShaderChunk.normal_fragment_begin.replace('float faceDirection = gl_FrontFacing ? 1.0 : - 1.0;','float faceDirection = 1.0;'));};
+        o.shade.patch(material,leaf?3:2);o.foliage.patch(material,leaf?1:2);o.fog.patch(material);patchBirchBlend(material,false,time);
+      }
+      const geo=part.geometry.clone();extra.push(geo);
+      const blend=new THREE.InstancedBufferAttribute(new Float32Array(capacity*3),3);geo.setAttribute('birchBlend',blend);
+      const mesh=new THREE.InstancedMesh(geo,material,capacity);mesh.count=0;mesh.frustumCulled=false;
+      mesh.castShadow=o.quality.shadows&&o.quality.birchShadows;mesh.receiveShadow=mesh.castShadow;
+      mesh.name=`forest-${asset.entry.id}-${variant}-lod${level}`;
+      const depth=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,map:leaf?material.map:null,alphaTest:leaf?material.alphaTest:0,side:leaf?THREE.DoubleSide:THREE.FrontSide});
+      o.foliage.patch(depth,leaf?1:2);patchBirchBlend(depth,false,time);mesh.customDepthMaterial=depth;extra.push(depth);
+      o.root.add(mesh);extra.push(mesh);group.push({mesh,n:0,blend});
+    }
+    modelSlots.set(`${asset.entry.id}:${variant}:${level}`,group);
   }
   let lastX=Infinity,lastZ=Infinity,lastFx=0,lastFz=0;
   const stats: ForestStats={trees:plants.length,cards:0,lod0:0,lod1:0,shrubs:0,grass:0,species:assets.map(a=>a.entry.id)};
   const update=(cam:THREE.Vector3,fwd:THREE.Vector3,cardR:number) => {
-    if (Math.hypot(cam.x-lastX,cam.z-lastZ)<4 && fwd.x*lastFx+fwd.z*lastFz>0.985) return;
+    const now=performance.now()/1000;time.value=now;
+    const released=[...selection.states.values()].some(s=>s.to===0&&birchBlend(s,now)===0);
+    if (!released && Math.hypot(cam.x-lastX,cam.z-lastZ)<4 && fwd.x*lastFx+fwd.z*lastFz>0.985) return;
     lastX=cam.x;lastZ=cam.z;lastFx=fwd.x;lastFz=fwd.z;
     for(const s of slots.values()) s.n=0;
+    for(const group of modelSlots.values()) for(const s of group)s.n=0;
+    const visible: Plant[]=[];
     const r=Math.ceil(cardR/25)+1, cx=Math.floor(cam.x/25),cz=Math.floor(cam.z/25);
     for(let a=-r;a<=r;a++) for(let b=-r;b<=r;b++) {
       const list=cells.get(`${cx+a},${cz+b}`); if(!list)continue;
@@ -87,12 +125,31 @@ vNormalMapUv += vec2(fu,forestRow*${cellV.toFixed(9)});
       if(d-padding>cardR || (d>80&&(dx*fwd.x+dz*fwd.z+padding)/d<0.26) || o.fog.pathMin(dx,dz,padding)>o.quality.forestFogFar+10)continue;
       for(const p of list) {
         if((p.x-cam.x)**2+(p.z-cam.z)**2>cardR**2) continue;
-        const s=slots.get(p.asset.entry.id)!;
-        s.mesh.setMatrixAt(s.n,p.matrix);s.row.setX(s.n,p.row);s.yaw.setX(s.n,p.yaw);s.n++;
+        visible.push(p);
       }
     }
+    if(modelsEnabled) selection.update(visible.filter(p=>(p.x-cam.x)**2+(p.z-cam.z)**2<(selection.radius+10)**2).map(p=>({i:p.id,dd:(p.x-cam.x)**2+(p.z-cam.z)**2})),now);
+    const seen=new Set(visible.map(p=>p.id));
+    for(const i of selection.states.keys()) if(!seen.has(i))visible.push(plants[i]);
+    for(const p of visible) {
+      const state=selection.states.get(p.id);
+      if(!state||birchBlend(state,now)<1||state.to===0) {
+        const s=slots.get(p.asset.entry.id)!;
+        s.mesh.setMatrixAt(s.n,p.matrix);s.row.setX(s.n,p.row);s.yaw.setX(s.n,p.yaw);
+        s.blend.setXYZ(s.n,state?.from??0,state?.to??0,state?.start??0);s.n++;
+      }
+    }
+    stats.lod0=0;stats.lod1=0;
+    for(const [i,state] of selection.states) {
+      const p=plants[i],variant=Math.min(p.row,p.asset.models.length-1);
+      for(const s of modelSlots.get(`${p.asset.entry.id}:${variant}:${state.level}`)??[]) {
+        s.mesh.setMatrixAt(s.n,p.matrix);s.blend.setXYZ(s.n,state.from,state.to,state.start);s.n++;
+      }
+      if(state.level===0)stats.lod0++;else stats.lod1++;
+    }
+    for(const group of modelSlots.values())for(const s of group){s.mesh.count=s.n;s.mesh.visible=s.n>0;s.mesh.instanceMatrix.needsUpdate=true;s.blend.needsUpdate=true;}
     stats.cards=0;
-    for(const s of slots.values()) {s.mesh.count=s.n;s.mesh.visible=s.n>0;s.mesh.instanceMatrix.needsUpdate=true;s.row.needsUpdate=true;s.yaw.needsUpdate=true;stats.cards+=s.n;}
+    for(const s of slots.values()) {s.mesh.count=s.n;s.mesh.visible=s.n>0;s.mesh.instanceMatrix.needsUpdate=true;s.row.needsUpdate=true;s.yaw.needsUpdate=true;s.blend.needsUpdate=true;stats.cards+=s.n;}
   };
-  return { update, stats:()=>({...stats}), dispose:()=>{for(const s of slots.values())o.root.remove(s.mesh);extra.forEach(x=>x.dispose());resources.dispose();} };
+  return { update, stats:()=>({...stats}), dispose:()=>{for(const group of modelSlots.values())for(const s of group)o.root.remove(s.mesh);for(const s of slots.values())o.root.remove(s.mesh);extra.forEach(x=>x.dispose());resources.dispose();} };
 }
