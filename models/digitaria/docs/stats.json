@@ -1,0 +1,237 @@
+{
+ "warnings": [],
+ "textures": {
+  "foliage_color.png": [
+   1024,
+   1024
+  ],
+  "foliage_normal.png": [
+   1024,
+   1024
+  ]
+ },
+ "name": "digitaria",
+ "models": {
+  "a": {
+   "blend": "MT_PM_V60_Digitaria_sanguinalis_01_06.blend",
+   "relinked": 12,
+   "missing_images_ignored": [
+    "mt_pm_v60_digitaria_sanguinalis_01_leaf_01_translucency.jpg",
+    "mt_pm_v60_digitaria_sanguinalis_01_leaf_02_translucency.jpg",
+    "mt_pm_v60_digitaria_sanguinalis_01_leaf_03_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Digitaria_sanguinalis_01_Leaf_01",
+    "MT_PM_V60_Digitaria_sanguinalis_01_Leaf_02",
+    "MT_PM_V60_Digitaria_sanguinalis_01_Leaf_03"
+   ],
+   "tris_by_role": {
+    "leaf": 5286
+   },
+   "tris": 5286,
+   "origin_shift_m": [
+    -0.0078,
+    0.0006,
+    0.0
+   ],
+   "height_m": 0.204,
+   "below_ground_m": 0.002,
+   "width_m": [
+    0.33,
+    0.26
+   ],
+   "foliage_cards": {
+    "lod0": 3
+   }
+  },
+  "b": {
+   "blend": "MT_PM_V60_Digitaria_sanguinalis_01_05.blend",
+   "relinked": 12,
+   "missing_images_ignored": [
+    "mt_pm_v60_digitaria_sanguinalis_01_leaf_01_translucency.jpg",
+    "mt_pm_v60_digitaria_sanguinalis_01_leaf_02_translucency.jpg",
+    "mt_pm_v60_digitaria_sanguinalis_01_leaf_03_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Digitaria_sanguinalis_01_Leaf_01",
+    "MT_PM_V60_Digitaria_sanguinalis_01_Leaf_02",
+    "MT_PM_V60_Digitaria_sanguinalis_01_Leaf_03"
+   ],
+   "tris_by_role": {
+    "leaf": 5358
+   },
+   "tris": 5358,
+   "origin_shift_m": [
+    0.0033,
+    -0.0015,
+    0.0
+   ],
+   "height_m": 0.131,
+   "below_ground_m": 0.002,
+   "width_m": [
+    0.16,
+    0.14
+   ],
+   "foliage_cards": {
+    "lod0": 3
+   }
+  }
+ },
+ "foliage_atlas": {
+  "from_model": "all",
+  "templates": [
+   {
+    "tag": "star",
+    "id": "a0",
+    "model": "a",
+    "w_m": 0.314,
+    "h_m": 0.2,
+    "src_W": 0.406,
+    "src_H": 0.204,
+    "opaque_frac": 0.089,
+    "px": [
+     0,
+     0,
+     397,
+     254
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "a1",
+    "model": "a",
+    "w_m": 0.286,
+    "h_m": 0.2,
+    "src_W": 0.318,
+    "src_H": 0.204,
+    "opaque_frac": 0.095,
+    "px": [
+     0,
+     321,
+     461,
+     322
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "a2",
+    "model": "a",
+    "w_m": 0.274,
+    "h_m": 0.18,
+    "src_W": 0.293,
+    "src_H": 0.204,
+    "opaque_frac": 0.104,
+    "px": [
+     403,
+     0,
+     479,
+     315
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "b0",
+    "model": "b",
+    "w_m": 0.136,
+    "h_m": 0.114,
+    "src_W": 0.17,
+    "src_H": 0.131,
+    "opaque_frac": 0.084,
+    "px": [
+     0,
+     664,
+     413,
+     345
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "b1",
+    "model": "b",
+    "w_m": 0.132,
+    "h_m": 0.114,
+    "src_W": 0.174,
+    "src_H": 0.131,
+    "opaque_frac": 0.1,
+    "px": [
+     467,
+     321,
+     390,
+     338
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "b2",
+    "model": "b",
+    "w_m": 0.157,
+    "h_m": 0.114,
+    "src_W": 0.163,
+    "src_H": 0.131,
+    "opaque_frac": 0.087,
+    "px": [
+     419,
+     664,
+     493,
+     359
+    ]
+   }
+  ],
+  "atlas_opaque_fraction": 0.074,
+  "size": [
+   1024,
+   1024
+  ]
+ },
+ "lods": {
+  "a_lod0": {
+   "bark_tris": 0,
+   "foliage_tris": 6,
+   "total_tris": 6,
+   "verts": 12,
+   "bbox_blender_zup": [
+    [
+     -0.118,
+     -0.123,
+     0.0
+    ],
+    [
+     0.196,
+     0.131,
+     0.198
+    ]
+   ],
+   "glb_bytes": 2432152
+  },
+  "b_lod0": {
+   "bark_tris": 0,
+   "foliage_tris": 6,
+   "total_tris": 6,
+   "verts": 12,
+   "bbox_blender_zup": [
+    [
+     -0.07,
+     -0.065,
+     0.0
+    ],
+    [
+     0.067,
+     0.071,
+     0.113
+    ]
+   ],
+   "glb_bytes": 2432148
+  }
+ },
+ "materials": [
+  "foliage"
+ ],
+ "roughness": {
+  "bark": null,
+  "foliage": 0.688
+ },
+ "source": {
+  "a": "MT_PM_V60_Digitaria_sanguinalis_01_06.blend",
+  "b": "MT_PM_V60_Digitaria_sanguinalis_01_05.blend"
+ }
+}

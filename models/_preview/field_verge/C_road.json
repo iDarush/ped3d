@@ -1,0 +1,13 @@
+{
+ "mode": "C",
+ "view": "road",
+ "tufts": 231,
+ "by_asset": {
+  "ammophila": 10,
+  "digitaria_dry": 69,
+  "ammophila_dry": 100,
+  "setaria_dry": 41,
+  "setaria": 11
+ },
+ "tris": 1386
+}

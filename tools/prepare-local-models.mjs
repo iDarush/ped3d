@@ -10,7 +10,9 @@ export const SPECIES = [
   { id: 'abelia', role: 'shrub', models: ['abelia_a', 'abelia_b'], lods: [0, 1] },
   { id: 'cistus', role: 'shrub', models: ['cistus_a', 'cistus_b'], lods: [0, 1] },
   { id: 'lolium', role: 'grass', models: ['lolium_a', 'lolium_b'], lods: [0] },
-  { id: 'setaria', role: 'grass', models: ['setaria_a', 'setaria_b'], lods: [0] },
+  { id: 'setaria', role: 'grass', models: ['setaria_a', 'setaria_b'], lods: [0], dry: true },
+  { id: 'ammophila', role: 'grass', models: ['ammophila_a', 'ammophila_b'], lods: [0], dry: true, fieldOnly: true },
+  { id: 'digitaria', role: 'grass', models: ['digitaria_a', 'digitaria_b'], lods: [0], dryOnly: true, fieldOnly: true },
 ];
 const copy = (from, to) => { mkdirSync(dirname(to), { recursive: true }); copyFileSync(from, to); };
 export const GROUND_FILES = ['forestfloor_h.jpg', ...['forest_grass','forest_leaves','forest_rock'].flatMap(n=>['', '_n', '_orm', '_h'].map(s=>`${n}${s}.jpg`))];
@@ -47,11 +49,15 @@ export function prepareLocalModels(root) {
     let entry;
     try {
       if (existsSync(source)) {
-        const models = spec.models.flatMap(model => spec.lods.map(lod => `${model}_lod${lod}.glb`));
-        const files = [...models, ...textures(resolve(source, 'textures'))];
+        const models = spec.models.flatMap(model => spec.lods.map(lod => `${model}_lod${lod}${spec.dryOnly?'_dry':''}.glb`));
+        const dryModels=spec.dry?spec.models.map(model=>`${model}_lod0_dry.glb`):[];
+        const availableDry=dryModels.every(file=>existsSync(resolve(source,file)))?dryModels:[];
+        if(dryModels.length&&!availableDry.length)console.warn(`${spec.id}: optional dry variants unavailable`);
+        const files = [...models, ...availableDry, ...textures(resolve(source, 'textures'))];
         for (const file of files) if (!existsSync(resolve(source, file))) throw new Error(`Missing ${file}`);
         for (const model of models) checkGlb(resolve(source, model), source);
-        entry = { id: spec.id, role: spec.role, models, files, cards: null };
+        for (const model of availableDry) checkGlb(resolve(source, model), source);
+        entry = { id: spec.id, role: spec.role, models, files, cards: null, ...(availableDry.length?{dryModels:availableDry}:{}), ...(spec.fieldOnly?{fieldOnly:true}:{}), ...(spec.dryOnly?{dryOnly:true}:{}) };
         const cardsSource = resolve(root, 'models', spec.id, 'cards');
         if (existsSync(cardsSource)) {
           try {

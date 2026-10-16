@@ -1,0 +1,229 @@
+{
+ "warnings": [],
+ "textures": {
+  "foliage_color.png": [
+   1024,
+   1024
+  ],
+  "foliage_normal.png": [
+   1024,
+   1024
+  ]
+ },
+ "name": "ammophila",
+ "models": {
+  "a": {
+   "blend": "MT_PM_V60_Ammophila_arenaria_01_01.blend",
+   "relinked": 4,
+   "missing_images_ignored": [
+    "mt_pm_v60_ammophila_arenaria_01_leaf_01_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Ammophila_arenaria_01_Leaf_01"
+   ],
+   "tris_by_role": {
+    "leaf": 49386
+   },
+   "tris": 49386,
+   "origin_shift_m": [
+    0.0011,
+    -0.0075,
+    0.0
+   ],
+   "height_m": 0.245,
+   "below_ground_m": 0.027,
+   "width_m": [
+    0.33,
+    0.37
+   ],
+   "foliage_cards": {
+    "lod0": 3
+   }
+  },
+  "b": {
+   "blend": "MT_PM_V60_Ammophila_arenaria_01_02.blend",
+   "relinked": 4,
+   "missing_images_ignored": [
+    "mt_pm_v60_ammophila_arenaria_01_leaf_01_translucency.jpg"
+   ],
+   "materials": [
+    "MT_PM_V60_Ammophila_arenaria_01_Leaf_01"
+   ],
+   "tris_by_role": {
+    "leaf": 59985
+   },
+   "tris": 59985,
+   "origin_shift_m": [
+    0.0137,
+    0.018,
+    0.0
+   ],
+   "height_m": 0.263,
+   "below_ground_m": 0.018,
+   "width_m": [
+    0.45,
+    0.44
+   ],
+   "foliage_cards": {
+    "lod0": 3
+   }
+  }
+ },
+ "foliage_atlas": {
+  "from_model": "all",
+  "templates": [
+   {
+    "tag": "star",
+    "id": "a0",
+    "model": "a",
+    "w_m": 0.314,
+    "h_m": 0.25,
+    "src_W": 0.336,
+    "src_H": 0.245,
+    "opaque_frac": 0.25,
+    "px": [
+     0,
+     0,
+     507,
+     404
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "a1",
+    "model": "a",
+    "w_m": 0.331,
+    "h_m": 0.245,
+    "src_W": 0.408,
+    "src_H": 0.245,
+    "opaque_frac": 0.238,
+    "px": [
+     0,
+     410,
+     440,
+     326
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "a2",
+    "model": "a",
+    "w_m": 0.321,
+    "h_m": 0.25,
+    "src_W": 0.357,
+    "src_H": 0.245,
+    "opaque_frac": 0.244,
+    "px": [
+     513,
+     0,
+     488,
+     380
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "b0",
+    "model": "b",
+    "w_m": 0.412,
+    "h_m": 0.257,
+    "src_W": 0.513,
+    "src_H": 0.263,
+    "opaque_frac": 0.265,
+    "px": [
+     0,
+     742,
+     435,
+     272
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "b1",
+    "model": "b",
+    "w_m": 0.412,
+    "h_m": 0.256,
+    "src_W": 0.494,
+    "src_H": 0.263,
+    "opaque_frac": 0.274,
+    "px": [
+     441,
+     742,
+     452,
+     281
+    ]
+   },
+   {
+    "tag": "star",
+    "id": "b2",
+    "model": "b",
+    "w_m": 0.387,
+    "h_m": 0.259,
+    "src_W": 0.474,
+    "src_H": 0.263,
+    "opaque_frac": 0.291,
+    "px": [
+     446,
+     410,
+     442,
+     297
+    ]
+   }
+  ],
+  "atlas_opaque_fraction": 0.221,
+  "size": [
+   1024,
+   1024
+  ]
+ },
+ "lods": {
+  "a_lod0": {
+   "bark_tris": 0,
+   "foliage_tris": 6,
+   "total_tris": 6,
+   "verts": 12,
+   "bbox_blender_zup": [
+    [
+     -0.161,
+     -0.137,
+     0.0
+    ],
+    [
+     0.153,
+     0.162,
+     0.245
+    ]
+   ],
+   "glb_bytes": 3498244
+  },
+  "b_lod0": {
+   "bark_tris": 0,
+   "foliage_tris": 6,
+   "total_tris": 6,
+   "verts": 12,
+   "bbox_blender_zup": [
+    [
+     -0.229,
+     -0.192,
+     0.0
+    ],
+    [
+     0.183,
+     0.168,
+     0.256
+    ]
+   ],
+   "glb_bytes": 3498248
+  }
+ },
+ "materials": [
+  "foliage"
+ ],
+ "roughness": {
+  "bark": null,
+  "foliage": 0.684
+ },
+ "source": {
+  "a": "MT_PM_V60_Ammophila_arenaria_01_01.blend",
+  "b": "MT_PM_V60_Ammophila_arenaria_01_02.blend"
+ }
+}

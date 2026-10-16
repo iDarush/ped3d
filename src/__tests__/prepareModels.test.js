@@ -50,3 +50,30 @@ it('stages the fixed ground list and merges credits without removing shared asse
     rmSync(root,{recursive:true});
   }
 });
+
+it('keeps dry grass as separate color variants in the same texture directory',()=>{
+  const root=mkdtempSync(resolve(tmpdir(),'ride3d-dry-'));
+  const write=(file,data)=>{const path=resolve(root,file);mkdirSync(dirname(path),{recursive:true});writeFileSync(path,data);};
+  const glb=color=>{const json=Buffer.from(JSON.stringify({images:[{uri:`textures/${color}.ktx2`},{uri:'textures/foliage_normal.ktx2'}]}));const b=Buffer.alloc(20+json.length);b.writeUInt32LE(json.length,12);json.copy(b,20);return b;};
+  try{
+    for(const file of ['basis_transcoder.js','basis_transcoder.wasm'])write(`node_modules/three/examples/jsm/libs/basis/${file}`,'test');
+    write('node_modules/three/LICENSE','test');
+    for(const id of ['setaria','digitaria']){
+      for(const name of ['foliage_color','foliage_color_dry','foliage_normal'])write(`models/${id}/ktx2/textures/${name}.ktx2`,'test');
+      for(const variant of ['a','b']){
+        write(`models/${id}/ktx2/${id}_${variant}_lod0.glb`,glb('foliage_color'));
+        write(`models/${id}/ktx2/${id}_${variant}_lod0_dry.glb`,glb('foliage_color_dry'));
+      }
+    }
+    const manifest=prepareLocalModels(root),s=manifest.species.find(s=>s.id==='setaria'),d=manifest.species.find(s=>s.id==='digitaria');
+    expect(s.models).toEqual(['setaria_a_lod0.glb','setaria_b_lod0.glb']);
+    expect(s.dryModels).toEqual(['setaria_a_lod0_dry.glb','setaria_b_lod0_dry.glb']);
+    expect(s.files.filter(f=>f.endsWith('foliage_normal.ktx2'))).toHaveLength(1);
+    expect(d.dryOnly).toBe(true);expect(d.fieldOnly).toBe(true);
+    expect(d.models.every(f=>f.endsWith('_dry.glb'))).toBe(true);
+    expect(existsSync(resolve(root,'public/scene-assets/setaria/setaria_a_lod0_dry.glb'))).toBe(true);
+  }finally{
+    if(!root.startsWith(resolve(tmpdir(),'ride3d-dry-')))throw new Error('Unsafe test directory');
+    rmSync(root,{recursive:true});
+  }
+});
