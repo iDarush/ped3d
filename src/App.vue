@@ -93,7 +93,7 @@ const procScene = "scenes/" + (q.get("scene") ?? "muritz-3k") + "/";
 const shadows = ref(q.get("shadows") !== "0");
 const quality = parseQuality(q.get("q"));
 const wind = q.get("wind") !== "0";
-const treeGrounding = q.get("grounding") === "off" ? "off" : q.get("grounding") === "full" ? "full" : "shade";
+const treeGrounding = q.get("grounding") === "off" ? "off" : q.get("grounding") === "shade" ? "shade" : "full";
 const forestMix = q.get("forest") === "mix";
 const forestStage = ["cards","trees","shrubs","grass","full"].includes(q.get("forestStage") ?? "") ? q.get("forestStage")! : "full";
 const allBirches = !forestMix && q.get("birch") === "all";
@@ -147,9 +147,9 @@ const segTo = computed(() => (proc.value && procSeg.value ? procSeg.value.to : l
 const shownDistance = ref(0),
   grade = ref(0),
   elev = ref(0);
-function onFrame(f: { distanceM: number; gradePct: number; groundM: number; fps?: number; calls?: number; triangles?: number; birches?: { lod0: number; lod1: number; cards?: number }; vegetation?: { cards: number; lod0: number; lod1: number; shrubs: number; grass: number }; render?: { width: number; height: number } }) {
+function onFrame(f: { distanceM: number; gradePct: number; groundM: number; fps?: number; calls?: number; triangles?: number; birches?: { lod0: number; lod1: number; cards?: number }; vegetation?: { cards: number; lod0: number; lod1: number; shrubs: number; grass: number; rootTufts?: number }; render?: { width: number; height: number } }) {
   if (f.fps != null) fpsText.value = `${f.fps.toFixed(0)} fps · ${f.calls} draw calls · ${((f.triangles ?? 0) / 1000).toFixed(0)}k tris · q=${quality}`;
-  if (forestMix && f.vegetation) fpsText.value += ` · forest ${f.vegetation.lod0}+${f.vegetation.lod1} · cards ${f.vegetation.cards} · shrubs ${f.vegetation.shrubs} · tufts ${f.vegetation.grass}`;
+  if (forestMix && f.vegetation) fpsText.value += ` · forest ${f.vegetation.lod0}+${f.vegetation.lod1} · cards ${f.vegetation.cards} · shrubs ${f.vegetation.shrubs} · tufts ${f.vegetation.grass} · roots ${f.vegetation.rootTufts ?? 0}`;
   if (allBirches) fpsText.value += " · all birch";
   if (birchPreview && f.birches) fpsText.value += ` · birch ${f.birches.lod0}+${f.birches.lod1}`;
   if (birchCards && f.birches?.cards != null) fpsText.value += ` · cards ${f.birches.cards}`;

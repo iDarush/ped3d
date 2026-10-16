@@ -11,7 +11,7 @@ import type { CanopyShade } from './canopyShade';
 import type { Foliage } from './foliage';
 import type { ForestFog } from './forestFog';
 
-export interface ForestStats { trees: number; cards: number; lod0: number; lod1: number; shrubs: number; shrubLod0: number; shrubLod1: number; grass: number; species: string[] }
+export interface ForestStats { trees: number; cards: number; lod0: number; lod1: number; shrubs: number; shrubLod0: number; shrubLod1: number; grass: number; rootTufts: number; species: string[] }
 interface Plant { id: number; x: number; y: number; z: number; yaw: number; scale: number; row: number; asset: ForestAsset; matrix: THREE.Matrix4 }
 interface Slot { mesh: THREE.InstancedMesh; n: number; row: THREE.InstancedBufferAttribute; yaw: THREE.InstancedBufferAttribute; blend: THREE.InstancedBufferAttribute }
 export async function createForestRuntime(o: { renderer: THREE.WebGLRenderer; root: THREE.Group; quality: QualityPreset; trees: Float32Array; heightAt: (x: number,z: number) => number; roadFree: (x: number,z: number) => number; weights: (x: number,z: number) => number[]; shade: CanopyShade; foliage: Foliage; fog: ForestFog; stage: string; grounding?: TreeGrounding }) {
@@ -21,8 +21,10 @@ export async function createForestRuntime(o: { renderer: THREE.WebGLRenderer; ro
   const selection = new BirchSelection([o.quality.birchDetailCount,o.quality.birchSimpleCount], Math.min(o.quality.detailR,o.quality.birchCardNear+o.quality.birchCardFade/2));
   const shrubsEnabled = ['shrubs','grass','full'].includes(o.stage);
   const shrubSelection = new BirchSelection([o.quality.forestShrubDetailCount,o.quality.forestShrubSimpleCount],30,12);
-  const grassEnabled=['grass','full'].includes(o.stage);
-  const resources = await loadForestAssets(o.renderer, grassEnabled?['tree','shrub','grass']:shrubsEnabled?['tree','shrub']:['tree'], modelsEnabled);
+  const vergeEnabled=['grass','full'].includes(o.stage);
+  const rootsEnabled=o.grounding==='full';
+  const grassEnabled=vergeEnabled||rootsEnabled;
+  const resources = await loadForestAssets(o.renderer, ['tree',...(shrubsEnabled?['shrub']:[]),...(grassEnabled?['grass']:[])], modelsEnabled);
   const assets = resources.assets.filter(a => a.entry.role !== 'grass' && a.card && a.meta);
   const treeAssets = assets.filter(a=>a.entry.role==='tree');
   const shrubAssets = assets.filter(a=>a.entry.role==='shrub');
@@ -149,12 +151,12 @@ vNormalMapUv += vec2(fu,forestRow*${cellV.toFixed(9)});
     }
     modelSlots.set(`${asset.entry.id}:${variant}:${level}`,group);
   }
-  const grass=createForestGrass({assets:grassEnabled?resources.assets:[],root:o.root,radius:o.quality.forestGrassR,density:o.quality.forestGrassDensity,normals:o.quality.groundNormals,heightAt:o.heightAt,roadFree:o.roadFree,weights:o.weights,shade:o.shade,foliage:o.foliage,fog:o.fog});
+  const grass=createForestGrass({assets:grassEnabled?resources.assets:[],roots:rootsEnabled?plants.filter(p=>p.asset.entry.role==='tree'):[],vergeEnabled,root:o.root,radius:o.quality.forestGrassR,density:o.quality.forestGrassDensity,normals:o.quality.groundNormals,heightAt:o.heightAt,roadFree:o.roadFree,weights:o.weights,shade:o.shade,foliage:o.foliage,fog:o.fog});
   let lastX=Infinity,lastZ=Infinity,lastFx=0,lastFz=0;
-  const stats: ForestStats={trees:plants.filter(p=>p.asset.entry.role==='tree').length,cards:0,lod0:0,lod1:0,shrubs:0,shrubLod0:0,shrubLod1:0,grass:0,species:resources.assets.map(a=>a.entry.id)};
+  const stats: ForestStats={trees:plants.filter(p=>p.asset.entry.role==='tree').length,cards:0,lod0:0,lod1:0,shrubs:0,shrubLod0:0,shrubLod1:0,grass:0,rootTufts:0,species:resources.assets.map(a=>a.entry.id)};
   const update=(cam:THREE.Vector3,fwd:THREE.Vector3,cardR:number) => {
     grounding?.update(cam.x,cam.z);
-    grass.update(cam);stats.grass=grass.stats();
+    grass.update(cam);stats.grass=grass.stats();stats.rootTufts=grass.rootStats();
     const now=performance.now()/1000;time.value=now;
     const released=[...selection.states.values(),...shrubSelection.states.values()].some(s=>s.to===0&&birchBlend(s,now)===0);
     if (!released && Math.hypot(cam.x-lastX,cam.z-lastZ)<4 && fwd.x*lastFx+fwd.z*lastFz>0.985) return;

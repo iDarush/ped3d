@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { chooseForestSpecies, forestHash, forestGrassRegion } from '../lib/forestPlacement';
+import { chooseForestSpecies, forestHash, forestGrassRegion, treeRootRing } from '../lib/forestPlacement';
 it('keeps world identities independent of lookup order and renderer refills', () => {
   const points = [[0,0],[-12.3,77.1],[1200,-910]];
   const first = points.map(([x,z]) => [forestHash(x,z), chooseForestSpecies(x,z,['birch','alder','gentree','maple'])]);
@@ -22,4 +22,13 @@ it('keeps texture tufts off the road and out of deep forest or open field interi
   expect(forestGrassRegion(0,0,()=>20,forest)).toBe(false);
   expect(forestGrassRegion(0,0,()=>20,field)).toBe(false);
   expect(forestGrassRegion(0,0,()=>20,(x)=>x>=4?field():forest())).toBe(true);
+});
+
+it('keeps root rings deterministic with 3–6 low clumps inside the specified annulus',()=>{
+  for(const [x,z] of [[0,0],[-17.3,83.1],[900,1200]]) {
+    const ring=treeRootRing(x,z);
+    expect(treeRootRing(x,z)).toEqual(ring);
+    expect(ring.length).toBeGreaterThanOrEqual(3);expect(ring.length).toBeLessThanOrEqual(6);
+    for(const p of ring){expect(Math.hypot(p.x-x,p.z-z)).toBeGreaterThanOrEqual(.3-1e-9);expect(Math.hypot(p.x-x,p.z-z)).toBeLessThanOrEqual(1.2+1e-9);expect(p.scale).toBeLessThanOrEqual(.95);}
+  }
 });

@@ -19,3 +19,13 @@ export function forestGrassRegion(x:number,z:number,roadFree:(x:number,z:number)
   if(w[2]>.25)return [[4,0],[-4,0],[0,4],[0,-4]].some(([dx,dz])=>weights(x+dx,z+dz)[2]<.25);
   return w[0]>.5&&[[8,0],[-8,0],[0,8],[0,-8]].some(([dx,dz])=>weights(x+dx,z+dz)[2]>.4);
 }
+
+/** A coordinate hash is the tree's persistent ID, independent of model slots. */
+export function treeRootRing(x:number,z:number) {
+  const count=3+Math.floor(forestHash(x,z,210)*4),phase=forestHash(x,z,211)*Math.PI*2;
+  return Array.from({length:count},(_,i)=>{
+    const angle=phase+(i+forestHash(x,z,212+i)*.45)*Math.PI*2/count;
+    const radius=Math.sqrt(.3*.3+forestHash(x,z,220+i)*(1.2*1.2-.3*.3));
+    return {x:x+Math.cos(angle)*radius,z:z+Math.sin(angle)*radius,scale:.65+forestHash(x,z,230+i)*.3,yaw:forestHash(x,z,240+i)*Math.PI*2};
+  });
+}
