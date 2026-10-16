@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createTreeContact, patchTreeBase, type TreeGrounding } from './treeContact';
 import { loadForestAssets, type ForestAsset } from './forestAssets';
 import { mirroredForestGeometry, patchForestAtlasFrames } from './forestAtlas';
 import { createForestGrass } from './forestGrass';
@@ -13,7 +14,7 @@ import type { ForestFog } from './forestFog';
 export interface ForestStats { trees: number; cards: number; lod0: number; lod1: number; shrubs: number; shrubLod0: number; shrubLod1: number; grass: number; species: string[] }
 interface Plant { id: number; x: number; y: number; z: number; yaw: number; scale: number; row: number; asset: ForestAsset; matrix: THREE.Matrix4 }
 interface Slot { mesh: THREE.InstancedMesh; n: number; row: THREE.InstancedBufferAttribute; yaw: THREE.InstancedBufferAttribute; blend: THREE.InstancedBufferAttribute }
-export async function createForestRuntime(o: { renderer: THREE.WebGLRenderer; root: THREE.Group; quality: QualityPreset; trees: Float32Array; heightAt: (x: number,z: number) => number; roadFree: (x: number,z: number) => number; weights: (x: number,z: number) => number[]; shade: CanopyShade; foliage: Foliage; fog: ForestFog; stage: string }) {
+export async function createForestRuntime(o: { renderer: THREE.WebGLRenderer; root: THREE.Group; quality: QualityPreset; trees: Float32Array; heightAt: (x: number,z: number) => number; roadFree: (x: number,z: number) => number; weights: (x: number,z: number) => number[]; shade: CanopyShade; foliage: Foliage; fog: ForestFog; stage: string; grounding?: TreeGrounding }) {
   const modelsEnabled = o.stage !== 'cards';
   const mirrorsEnabled = o.stage === 'full';
   const time = { value: 0 };
@@ -73,6 +74,7 @@ export async function createForestRuntime(o: { renderer: THREE.WebGLRenderer; ro
       }
     }
   }
+  const grounding = o.grounding !== 'off' && plants.some(p=>p.asset.entry.role==='tree') ? createTreeContact(o.shade,plants.filter(p=>p.asset.entry.role==='tree').map(p=>({x:p.x,z:p.z,height:p.scale*(p.asset.meta!.variants[p.row]?.height_m??p.asset.meta!.tree_cells.source_tree_height_m)/p.asset.meta!.tree_cells.source_tree_height_m}))) : undefined;
   const stateFor=(p:Plant)=>(p.asset.entry.role==='shrub'?shrubSelection:selection).states.get(p.id);
   const slots = new Map<string,Slot>();
   for (const asset of assets) {
@@ -104,6 +106,7 @@ vNormalMapUv += vec2(fu,forestRow*${cellV.toFixed(9)});
       sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>','#include <lights_fragment_begin>\nreflectedLight.indirectDiffuse += diffuseColor.rgb*0.25;');
     };
     material.customProgramCacheKey=()=>cacheKey+'|forest-atlas-'+asset.entry.id+'-'+mirrorsEnabled;
+    if (grounding && asset.entry.role==='tree') patchTreeBase(material);
     if (modelsEnabled) patchBirchBlend(material,true,time);
     if (asset.entry.role==='shrub') patchBirchLod(material,true,-100,o.quality.forestShrubCardR,1);
     const geometry=source.geometry.clone(); extra.push(geometry);
@@ -131,7 +134,9 @@ vNormalMapUv += vec2(fu,forestRow*${cellV.toFixed(9)});
         if(o.quality.liteTrees && leaf) material.normalMap=null;
         material.alphaToCoverage=leaf&&o.quality.antialias;
         if(leaf) material.onBeforeCompile=sh=>{sh.fragmentShader=sh.fragmentShader.replace('#include <normal_fragment_begin>',THREE.ShaderChunk.normal_fragment_begin.replace('float faceDirection = gl_FrontFacing ? 1.0 : - 1.0;','float faceDirection = 1.0;'));};
-        o.shade.patch(material,leaf?3:2);o.foliage.patch(material,leaf?1:2);o.fog.patch(material);patchBirchBlend(material,false,time);
+        o.shade.patch(material,leaf?3:2,!(grounding&&asset.entry.role==='tree'&&!leaf));
+        if(grounding&&asset.entry.role==='tree'&&!leaf)patchTreeBase(material);
+        o.foliage.patch(material,leaf?1:2);o.fog.patch(material);patchBirchBlend(material,false,time);
       }
       const geo=variant>=asset.models.length?mirroredForestGeometry(part.geometry):part.geometry.clone();extra.push(geo);
       const blend=new THREE.InstancedBufferAttribute(new Float32Array(capacity*3),3);geo.setAttribute('birchBlend',blend);
@@ -148,6 +153,7 @@ vNormalMapUv += vec2(fu,forestRow*${cellV.toFixed(9)});
   let lastX=Infinity,lastZ=Infinity,lastFx=0,lastFz=0;
   const stats: ForestStats={trees:plants.filter(p=>p.asset.entry.role==='tree').length,cards:0,lod0:0,lod1:0,shrubs:0,shrubLod0:0,shrubLod1:0,grass:0,species:resources.assets.map(a=>a.entry.id)};
   const update=(cam:THREE.Vector3,fwd:THREE.Vector3,cardR:number) => {
+    grounding?.update(cam.x,cam.z);
     grass.update(cam);stats.grass=grass.stats();
     const now=performance.now()/1000;time.value=now;
     const released=[...selection.states.values(),...shrubSelection.states.values()].some(s=>s.to===0&&birchBlend(s,now)===0);
@@ -192,5 +198,5 @@ vNormalMapUv += vec2(fu,forestRow*${cellV.toFixed(9)});
     stats.cards=0;
     for(const s of slots.values()) {s.mesh.count=s.n;s.mesh.visible=s.n>0;s.mesh.instanceMatrix.needsUpdate=true;s.row.needsUpdate=true;s.yaw.needsUpdate=true;s.blend.needsUpdate=true;stats.cards+=s.n;}
   };
-  return { update, grassRegion:grass.region, stats:()=>({...stats}), dispose:()=>{grass.dispose();for(const group of modelSlots.values())for(const s of group)o.root.remove(s.mesh);for(const s of slots.values())o.root.remove(s.mesh);extra.forEach(x=>x.dispose());resources.dispose();} };
+  return { update, grounding, grassRegion:grass.region, stats:()=>({...stats}), dispose:()=>{grounding?.dispose();grass.dispose();for(const group of modelSlots.values())for(const s of group)o.root.remove(s.mesh);for(const s of slots.values())o.root.remove(s.mesh);extra.forEach(x=>x.dispose());resources.dispose();} };
 }

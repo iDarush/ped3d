@@ -77,7 +77,7 @@ function rng(seed: number) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 }
 
-export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer, opts: { quality: QualityPreset; birchPreview?: boolean; birchCards?: boolean; allBirches?: boolean; forestMix?: boolean; forestStage?: string }): Promise<BuiltScene> {
+export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer, opts: { quality: QualityPreset; birchPreview?: boolean; birchCards?: boolean; allBirches?: boolean; forestMix?: boolean; forestStage?: string; treeGrounding?: "off" | "shade" | "full" }): Promise<BuiltScene> {
   const [data, bin] = await Promise.all([
     fetch(base + "scene.json").then((r) => r.json() as Promise<SceneData>),
     fetch(base + "scene.bin").then((r) => r.arrayBuffer()),
@@ -241,6 +241,7 @@ export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer,
         uSoilN: { value: N.soil_n },
         uForestN: { value: N.forestfloor_n },
         ...shade.uniforms,
+        ...forest?.grounding?.uniforms,
       });
       sh.vertexShader = sh.vertexShader
         .replace("#include <common>", "#include <common>\nattribute float aEdge;\nattribute vec2 uv1;\nvarying float vEdge;\nvarying vec2 vSplatUv;\nvarying vec2 vFarUv;\nvarying vec3 vWPos;\nvarying vec3 vWN;")
@@ -252,6 +253,7 @@ export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer,
 uniform sampler2D uSplat, uGrass, uSoil, uForest, uMoss, uFar, uGrassN, uSoilN, uForestN;
 varying float vEdge; varying vec2 vSplatUv; varying vec2 vFarUv; varying vec3 vWPos; varying vec3 vWN;
 ${shade.groundPars}
+${forest?.grounding?.pars ?? ""}
 vec3 tileTex(sampler2D t, vec2 p) {
   // two scales + rotation to hide tiling
   vec3 a = texture2D(t, p / 2.2).rgb;
@@ -285,6 +287,7 @@ ${shade.groundGlsl} }
 float dist = length(vWPos - cameraPosition);
 float blendFar = clamp(max(vEdge, (dist - 250.0) / 600.0), 0.0, 1.0);
 col = mix(col, farc, blendFar * 0.85);
+${forest?.grounding?.glsl ?? ""}
 diffuseColor.rgb *= col;`,
         )
         .replace(
@@ -1139,7 +1142,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
   disposables.push(forestFog);
   // cull only well past full opacity: the field is re-marched every 0.5 m but trees are refilled every 4 m
   fogged = (dx, dz, r) => forestFog.pathMin(dx, dz, r) > qp.forestFogFar + 10;
-  const forest = opts.forestMix ? await createForestRuntime({ renderer, root, quality: qp, trees: treesArr, heightAt, roadFree, weights: splatWeights, shade, foliage, fog: forestFog, stage: opts.forestStage ?? "full" }) : undefined;
+  const forest = opts.forestMix ? await createForestRuntime({ renderer, root, quality: qp, trees: treesArr, heightAt, roadFree, weights: splatWeights, shade, foliage, fog: forestFog, stage: opts.forestStage ?? "full", grounding: opts.treeGrounding ?? "shade" }) : undefined;
   if (forest) disposables.push(forest);
   root.traverse((o) => {
     const mm = (o as THREE.Mesh).material;

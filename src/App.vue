@@ -14,6 +14,7 @@
       :all-birches="allBirches"
       :forest-mix="forestMix"
       :forest-stage="forestStage"
+      :tree-grounding="treeGrounding"
       :eye-height-m="eyeH"
       :time-s="timeS"
       :test-mode="testMode"
@@ -92,6 +93,7 @@ const procScene = "scenes/" + (q.get("scene") ?? "muritz-3k") + "/";
 const shadows = ref(q.get("shadows") !== "0");
 const quality = parseQuality(q.get("q"));
 const wind = q.get("wind") !== "0";
+const treeGrounding = q.get("grounding") === "off" ? "off" : q.get("grounding") === "full" ? "full" : "shade";
 const forestMix = q.get("forest") === "mix";
 const forestStage = ["cards","trees","shrubs","grass","full"].includes(q.get("forestStage") ?? "") ? q.get("forestStage")! : "full";
 const allBirches = !forestMix && q.get("birch") === "all";

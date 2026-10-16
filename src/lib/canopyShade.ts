@@ -16,7 +16,7 @@ export interface CanopyShade {
   /** GLSL block for the ground: multiplies \`col\` (albedo) given world xz \`wp\` */
   groundGlsl: string;
   /** patch a mesh material: 1 = road, 2 = trunk, 3 = crown/bush, 4 = grass */
-  patch: (m: THREE.Material, mode: 1 | 2 | 3 | 4) => void;
+  patch: (m: THREE.Material, mode: 1 | 2 | 3 | 4, baseAo?: boolean) => void;
 }
 
 export function bakeCanopyShade(opts: {
@@ -135,7 +135,7 @@ uniform sampler2D uShade; uniform vec2 uShadeO, uShadeS;
   col *= mix(vec3(1.0), vec3(1.08, 1.02, 0.85), fl * 0.8);
   col *= k;
 }`;
-  const patch = (m: THREE.Material, mode: 1 | 2 | 3 | 4) => {
+  const patch = (m: THREE.Material, mode: 1 | 2 | 3 | 4, baseAo = true) => {
     const prev = m.onBeforeCompile;
     const prevKey = m.customProgramCacheKey();
     m.onBeforeCompile = (sh, r) => {
@@ -173,7 +173,7 @@ uniform sampler2D uShade; uniform vec2 uShadeO, uShadeS;
   k = mix(k, 0.85, shFleck(vShadeW) * cC * 0.75);
 #elif SHADE_MODE == 2
   // trunk: canopy shade + dark base (height AO over the lowest ~3 m of a 25 m tree)
-  k = mix(1.0, 0.5, cC) * mix(0.4, 1.0, smoothstep(0.0, 0.12, vShadeY));
+  k = mix(1.0, 0.5, cC)${baseAo ? " * mix(0.4, 1.0, smoothstep(0.0, 0.12, vShadeY))" : ""};
 #elif SHADE_MODE == 3
   // crowns/bushes: lower parts in the shade of the canopy, tops lit
   k = 1.0 - 0.5 * cC * (1.0 - smoothstep(0.35, 0.95, vShadeY));
@@ -186,7 +186,7 @@ uniform sampler2D uShade; uniform vec2 uShadeO, uShadeS;
         );
     };
     m.defines = { ...(m.defines ?? {}), SHADE_MODE: mode };
-    m.customProgramCacheKey = () => prevKey + "|shade" + mode;
+    m.customProgramCacheKey = () => prevKey + "|shade" + mode + "|base" + baseAo;
     m.needsUpdate = true;
   };
   return { tex, uniforms, groundPars: NOISE, groundGlsl, patch };
