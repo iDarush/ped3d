@@ -37,8 +37,10 @@ export function createForestFog(opts: { weight: (x: number, z: number) => number
   const step = maxDist / (BINS - 1);
   const P = new Float32Array(SECTORS * BINS); // metres
   const raw = new Float32Array(SECTORS * BINS);
-  const bytes = new Uint8Array(SECTORS * BINS);
-  const tex = new THREE.DataTexture(bytes, BINS, SECTORS, THREE.RedFormat, THREE.UnsignedByteType);
+  const local = new Float32Array(SECTORS * BINS);
+  const bytes = new Uint8Array(SECTORS * BINS * 2);
+  // R: integrated forest path, G: conservative local forest coverage for the wall.
+  const tex = new THREE.DataTexture(bytes, BINS, SECTORS, THREE.RGFormat, THREE.UnsignedByteType);
   tex.wrapS = THREE.ClampToEdgeWrapping;
   tex.wrapT = THREE.RepeatWrapping;
   tex.magFilter = tex.minFilter = THREE.LinearFilter;
@@ -67,9 +69,12 @@ export function createForestFog(opts: { weight: (x: number, z: number) => number
       let p = 0;
       const o = s * BINS;
       raw[o] = 0;
+      local[o] = weight(cx, cz);
       for (let k = 1; k < BINS; k++) {
         const r = (k - 0.5) * step;
-        p += weight(cx + cos[s] * r, cz + sin[s] * r) * step;
+        const w = weight(cx + cos[s] * r, cz + sin[s] * r);
+        local[o + k] = w;
+        p += w * step;
         raw[o + k] = p;
       }
     }
@@ -80,7 +85,11 @@ export function createForestFog(opts: { weight: (x: number, z: number) => number
         const at = (ds: number) => raw[(((s + ds) % SECTORS) + SECTORS) % SECTORS * BINS + k];
         const v = (at(-2) + 4 * at(-1) + 6 * at(0) + 4 * at(1) + at(2)) / 16;
         P[s * BINS + k] = v;
-        bytes[s * BINS + k] = Math.min(255, Math.round((v / maxDist) * 255));
+        bytes[(s * BINS + k) * 2] = Math.min(255, Math.round((v / maxDist) * 255));
+        // Never spread the wall into an adjacent open sector. The path itself
+        // stays softly filtered for materials and its existing CPU culling.
+        const coverage = Math.min(local[((s + SECTORS - 1) % SECTORS) * BINS + k], local[s * BINS + k], local[((s + 1) % SECTORS) * BINS + k]);
+        bytes[(s * BINS + k) * 2 + 1] = Math.round(Math.max(0, Math.min(1, coverage)) * 255);
       }
     tex.needsUpdate = true;
   };
@@ -115,23 +124,25 @@ uniform sampler2D uFFTex;
 uniform vec3 uFFColor;
 uniform float uFFNear, uFFFar, uFFMax;
 varying vec3 vFFOff;
-float forestFogAmount() {
+vec2 forestFogSample() {
   float d = length(vFFOff.xz);
   float u = (min(d, uFFMax) / uFFMax * ${(BINS - 1).toFixed(1)} + 0.5) / ${BINS.toFixed(1)};
   float v = atan(vFFOff.z, vFFOff.x) / 6.28318530718 + ${(0.5 / SECTORS).toFixed(6)};
-  float p = texture2D(uFFTex, vec2(u, v)).r * uFFMax;
-  return smoothstep(uFFNear, uFFFar, p);
+  return texture2D(uFFTex, vec2(u, v)).rg;
+}
+float forestFogAmount() {
+  return smoothstep(uFFNear, uFFFar, forestFogSample().r * uFFMax);
 }
 `;
   const VERT = "\nvFFOff = transpose(mat3(viewMatrix)) * mvPosition.xyz; // world-space offset from the camera\n";
   const inject = (sh: THREE.WebGLProgramParametersWithUniforms, wall: boolean) => {
     Object.assign(sh.uniforms, uniforms);
-    sh.vertexShader = PARS_V + sh.vertexShader.replace("#include <fog_vertex>", "#include <fog_vertex>" + VERT);
-    sh.fragmentShader = PARS_F + sh.fragmentShader.replace(
+    sh.vertexShader = (wall ? "varying float vFFWallHeight;\n" : "") + PARS_V + sh.vertexShader.replace("#include <fog_vertex>", "#include <fog_vertex>" + VERT + (wall ? "\nvFFWallHeight = uv.y * 46.0 - 40.0;\n" : ""));
+    sh.fragmentShader = (wall ? "varying float vFFWallHeight;\n" : "") + PARS_F + sh.fragmentShader.replace(
       "#include <fog_fragment>",
       wall
-        ? // fade out towards the canopy top (8–22 m above the eye) so the wall never shows as a band in the sky
-          "gl_FragColor = vec4(uFFColor, forestFogAmount() * (1.0 - smoothstep(8.0, 22.0, vFFOff.y)));"
+        ? // Terrain-relative height and an inward-only forest footprint: no sky halo.
+          "vec2 ff = forestFogSample();\ngl_FragColor = vec4(uFFColor, smoothstep(uFFNear, uFFFar, ff.r * uFFMax) * smoothstep(0.5, 0.9, ff.g) * (1.0 - smoothstep(1.0, 6.0, vFFWallHeight)));"
         : "gl_FragColor.rgb = mix(gl_FragColor.rgb, uFFColor, forestFogAmount());\n#include <fog_fragment>",
     );
   };
@@ -151,8 +162,25 @@ float forestFogAmount() {
   const wallMaterial = () => {
     const m = new THREE.MeshBasicMaterial({ fog: false, transparent: true, depthWrite: false, side: THREE.BackSide });
     m.onBeforeCompile = (sh) => inject(sh, true);
-    m.customProgramCacheKey = () => "forestfog-wall";
+    m.customProgramCacheKey = () => "forestfog-wall-terrain-mask";
     return m;
   };
   return { uniforms, update, path, pathMin, patch, wallMaterial, dispose: () => tex.dispose() };
+}
+
+
+const wallPositions = new WeakMap<THREE.Mesh, { x: number; z: number; radius: number }>();
+/** Keep the background below the shortest 8 m crowns, including on slopes. */
+export function updateForestWall(wall: THREE.Mesh, x: number, z: number, radius: number, heightAt: (x: number, z: number) => number) {
+  const last = wallPositions.get(wall);
+  if (last && Math.hypot(x-last.x,z-last.z)<0.5 && last.radius===radius) return;
+  wallPositions.set(wall,{x,z,radius});
+  wall.scale.set(radius,1,radius);
+  wall.position.set(x,0,z);
+  const position=wall.geometry.getAttribute("position"),uv=wall.geometry.getAttribute("uv");
+  for(let i=0;i<position.count;i++) {
+    const ground=heightAt(x+position.getX(i)*radius,z+position.getZ(i)*radius);
+    position.setY(i,ground+uv.getY(i)*46-40);
+  }
+  position.needsUpdate=true;
 }

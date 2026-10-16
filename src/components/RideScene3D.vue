@@ -14,6 +14,7 @@ import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { angleDelta, buildGeoTrack, lookAheadBearing, sampleTrack, trackGrade, type GeoPoint, type GeoTrack } from "../lib/geoTrack";
 import { RideClock } from "../lib/rideClock";
 import { loadProcScene, SUN_DIR, type BuiltScene } from "../lib/procScene";
+import { updateForestWall } from "../lib/forestFog";
 import { QUALITY, renderPixelRatio, type Quality } from "../lib/quality";
 
 const props = withDefaults(
@@ -170,8 +171,7 @@ function frame(now: number) {
   fu.uWind.value = props.wind ? 1 : 0;
   fu.uGlow.value = 2.2 * (sun.intensity / 2.6);
   const wallR = preset.forestFogFar * 0.98;
-  wall.scale.set(wallR, 60, wallR);
-  wall.position.set(camera.position.x, camera.position.y + 18, camera.position.z);
+  updateForestWall(wall, camera.position.x, camera.position.z, wallR, built.heightAt);
   // detailed trees only near the rider; trees/terrain fully hidden by forest fog are culled per direction in update()
   const cardR = preset.cardR;
   built.update(camera.position, fwd, { detailR: Math.min(preset.detailR, cardR), cardR, grassR: preset.grassR, fogFar: fog.far });
