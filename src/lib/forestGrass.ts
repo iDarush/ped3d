@@ -56,7 +56,7 @@ if(gn>=vGrassCoverage)discard;`).replace('#include <lights_fragment_begin>','#in
       const asset=lolium&&setaria?(forestHash(x,z,124)<.7?lolium:setaria):(lolium??setaria??assets[0]);
       const variant=Math.floor(forestHash(x,z,125)*asset.models.length),scale=.8+forestHash(x,z,126)*.6;
       matrix.compose(new THREE.Vector3(x,o.heightAt(x,z)-.015,z),q.setFromAxisAngle(up,forestHash(x,z,127)*Math.PI*2),new THREE.Vector3(scale,scale,scale));
-      out.push({x,z,matrix:new Float32Array(matrix.elements),rank:forestHash(x,z,128),slots:slots.filter(s=>s.id===asset.entry.id&&s.variant===variant)});
+      out.push({x,z,matrix:new Float32Array(matrix.elements),rank:forestHash(x,z,128)*0.875,slots:slots.filter(s=>s.id===asset.entry.id&&s.variant===variant)});
     }
     tiles.set(key,out);return out;
   };

@@ -93,9 +93,9 @@ const shadows = ref(q.get("shadows") !== "0");
 const quality = parseQuality(q.get("q"));
 const wind = q.get("wind") !== "0";
 const forestMix = q.get("forest") === "mix";
-const forestStage = q.get("forestStage") ?? "grass";
-const allBirches = q.get("birch") === "all";
-const birchPreview = allBirches || q.get("birch") === "1";
+const forestStage = ["cards","trees","shrubs","grass","full"].includes(q.get("forestStage") ?? "") ? q.get("forestStage")! : "full";
+const allBirches = !forestMix && q.get("birch") === "all";
+const birchPreview = !forestMix && (allBirches || q.get("birch") === "1");
 const birchCards = allBirches || (birchPreview && q.get("cards") !== "0");
 const eyeH = Number(q.get("eye") ?? 1.6); // eye height [m], e.g. &eye=0.4 for a low view
 const timeS = Number(q.get("t") ?? 3);

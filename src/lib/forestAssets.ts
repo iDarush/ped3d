@@ -13,6 +13,7 @@ export async function loadForestAssets(renderer: THREE.WebGLRenderer, roles: str
   if (!response.ok) throw new Error('Forest manifest unavailable; run npm run build or npm run dev');
   const manifest = await response.json() as { version: number; species: ForestEntry[] };
   if (manifest.version !== 1) throw new Error('Unsupported forest manifest');
+  if (!manifest.species.some(e=>roles.includes(e.role))) return { assets: [] as ForestAsset[], dispose:()=>{} };
   const ktx = new KTX2Loader().setTranscoderPath(import.meta.env.BASE_URL + 'basis/').detectSupport(renderer);
   const loader = new GLTFLoader().setKTX2Loader(ktx);
   const geometries = new Set<THREE.BufferGeometry>(), materials = new Set<THREE.Material>(), textures = new Set<THREE.Texture>();
