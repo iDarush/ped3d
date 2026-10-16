@@ -11,7 +11,7 @@ export function birchBlend(s: BirchState, now: number) {
  */
 export class BirchSelection {
   readonly states = new Map<number, BirchState>();
-  constructor(readonly limits: readonly number[], readonly radius: number) {}
+  constructor(readonly limits: readonly number[], readonly radius: number, readonly detailRadius = 20) {}
   update(candidates: { i: number; dd: number }[], now: number) {
     const distances = new Map(candidates.map(c => [c.i, Math.sqrt(c.dd)]));
     for (const [i, s] of this.states) {
@@ -29,7 +29,7 @@ export class BirchSelection {
     for (const s of this.states.values()) counts[s.level]++;
     for (const { i, dd } of [...candidates].sort((a, b) => a.dd - b.dd || a.i - b.i)) {
       if (this.states.has(i) || dd > this.radius ** 2) continue;
-      const level = dd < 20 ** 2 && counts[0] < this.limits[0] ? 0 : counts[1] < this.limits[1] ? 1 : -1;
+      const level = dd < this.detailRadius ** 2 && counts[0] < this.limits[0] ? 0 : counts[1] < this.limits[1] ? 1 : -1;
       if (level < 0) continue;
       this.states.set(i, { level, from: 0, to: 1, start: now });
       counts[level]++;

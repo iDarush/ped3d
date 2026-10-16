@@ -1,23 +1,27 @@
 import * as THREE from 'three';
 import { loadForestAssets, type ForestAsset } from './forestAssets';
 import { BirchSelection, birchBlend } from './birchSelection';
-import { patchBirchBlend } from './birchLod';
+import { patchBirchBlend, patchBirchLod } from './birchLod';
 import { forestHash, chooseForestSpecies } from './forestPlacement';
 import type { QualityPreset } from './quality';
 import type { CanopyShade } from './canopyShade';
 import type { Foliage } from './foliage';
 import type { ForestFog } from './forestFog';
 
-export interface ForestStats { trees: number; cards: number; lod0: number; lod1: number; shrubs: number; grass: number; species: string[] }
+export interface ForestStats { trees: number; cards: number; lod0: number; lod1: number; shrubs: number; shrubLod0: number; shrubLod1: number; grass: number; species: string[] }
 interface Plant { id: number; x: number; y: number; z: number; yaw: number; scale: number; row: number; asset: ForestAsset; matrix: THREE.Matrix4 }
 interface Slot { mesh: THREE.InstancedMesh; n: number; row: THREE.InstancedBufferAttribute; yaw: THREE.InstancedBufferAttribute; blend: THREE.InstancedBufferAttribute }
 export async function createForestRuntime(o: { renderer: THREE.WebGLRenderer; root: THREE.Group; quality: QualityPreset; trees: Float32Array; heightAt: (x: number,z: number) => number; roadFree: (x: number,z: number) => number; weights: (x: number,z: number) => number[]; shade: CanopyShade; foliage: Foliage; fog: ForestFog; stage: string }) {
   const modelsEnabled = o.stage !== 'cards';
   const time = { value: 0 };
   const selection = new BirchSelection([o.quality.birchDetailCount,o.quality.birchSimpleCount], Math.min(o.quality.detailR,o.quality.birchCardNear+o.quality.birchCardFade/2));
-  const resources = await loadForestAssets(o.renderer, ['tree'], modelsEnabled);
-  const assets = resources.assets.filter(a => a.entry.role === 'tree' && a.card && a.meta);
-  if (!assets.length) { resources.dispose(); throw new Error('forest=mix requires at least one tree species with cards'); }
+  const shrubsEnabled = ['shrubs','grass','full'].includes(o.stage);
+  const shrubSelection = new BirchSelection([o.quality.forestShrubDetailCount,o.quality.forestShrubSimpleCount],30,12);
+  const resources = await loadForestAssets(o.renderer, shrubsEnabled ? ['tree','shrub'] : ['tree'], modelsEnabled);
+  const assets = resources.assets.filter(a => a.entry.role !== 'grass' && a.card && a.meta);
+  const treeAssets = assets.filter(a=>a.entry.role==='tree');
+  const shrubAssets = assets.filter(a=>a.entry.role==='shrub');
+  if (!treeAssets.length) console.warn('No tree cards in forest manifest; continuing without tree instances');
   const extra: { dispose(): void }[] = [];
   const plants: Plant[] = [], grid = new Map<string, Plant[]>(), cells = new Map<string, Plant[]>();
   const key = (x: number,z: number,size: number) => `${Math.floor(x/size)},${Math.floor(z/size)}`;
@@ -34,7 +38,7 @@ export async function createForestRuntime(o: { renderer: THREE.WebGLRenderer; ro
     // Thin the forest edge, keeping isolated source trees outside forest patches.
     const fw = o.weights(x,z)[2];
     if (fw > 0.15 && fw < 0.65 && forestHash(x,z,48) < 0.25) continue;
-    const asset = assets.find(a => a.entry.id === chooseForestSpecies(x,z,assets.map(a=>a.entry.id)))!;
+    const asset = treeAssets.find(a => a.entry.id === chooseForestSpecies(x,z,treeAssets.map(a=>a.entry.id)))!;
     const row = asset.models.length > 1 ? Math.floor(forestHash(x,z,82)*2) : (['alder','maple'].includes(asset.entry.id) ? Math.floor(forestHash(x,z,82)*2) : 0);
     const scale = 8 + forestHash(x,z,17)*4, yaw = forestHash(x,z,29)*Math.PI*2;
     const matrix = new THREE.Matrix4().compose(new THREE.Vector3(x,o.heightAt(x,z)-0.05,z),q.setFromAxisAngle(up,yaw),new THREE.Vector3(scale,scale,scale));
@@ -42,6 +46,30 @@ export async function createForestRuntime(o: { renderer: THREE.WebGLRenderer; ro
     plants.push(p);
     for (const [map,k] of [[grid,key(x,z,5)],[cells,key(x,z,25)]] as const) { let list=map.get(k); if(!list) map.set(k,list=[]); list.push(p); }
   }
+  if(shrubsEnabled && shrubAssets.length) {
+    const anchors=new Set<string>(), shrubGrid=new Map<string,Plant[]>();
+    const roots=[...plants];
+    for(const root of roots) {
+      const ax=Math.floor(root.x/6)*6,az=Math.floor(root.z/6)*6,k=`${ax},${az}`;
+      if(anchors.has(k))continue;anchors.add(k);
+      const w=o.weights(ax,az)[2];if(w<0.3)continue;
+      const edge=[[8,0],[-8,0],[0,8],[0,-8]].some(([dx,dz])=>o.weights(ax+dx,az+dz)[2]<0.3);
+      const count=edge?3+Math.floor(forestHash(ax,az,19)*5):1;
+      for(let n=0;n<count;n++) {
+        const x=ax+(forestHash(ax+n,az,51)-0.5)*(edge?7:6),z=az+(forestHash(ax+n,az,52)-0.5)*(edge?7:6);
+        if(o.weights(x,z)[2]<0.3||o.roadFree(x,z)<0.6)continue;
+        const gx=Math.floor(x),gz=Math.floor(z);let close=false;
+        for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(const p of shrubGrid.get(`${gx+a},${gz+b}`)??[])if((p.x-x)**2+(p.z-z)**2<1)close=true;
+        if(close)continue;
+        const asset=shrubAssets.find(a=>a.entry.id===chooseForestSpecies(x,z,shrubAssets.map(a=>a.entry.id),true))!;
+        const scale=asset.meta!.tree_cells.source_tree_height_m*(0.8+forestHash(x,z,53)*0.5),yaw=forestHash(x,z,54)*Math.PI*2,row=Math.floor(forestHash(x,z,55)*2);
+        const y=o.heightAt(x,z)-0.03,matrix=new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),q.setFromAxisAngle(up,yaw),new THREE.Vector3(scale,scale,scale));
+        const p:Plant={id:plants.length,x,y,z,yaw,scale,row,asset,matrix};plants.push(p);
+        for(const [map,cell] of [[cells,key(x,z,25)],[shrubGrid,`${gx},${gz}`]] as const){let list=map.get(cell);if(!list)map.set(cell,list=[]);list.push(p);}
+      }
+    }
+  }
+  const stateFor=(p:Plant)=>(p.asset.entry.role==='shrub'?shrubSelection:selection).states.get(p.id);
   const slots = new Map<string,Slot>();
   for (const asset of assets) {
     const count = plants.filter(p=>p.asset===asset).length;
@@ -70,6 +98,7 @@ vNormalMapUv += vec2(fu,forestRow*${cellV.toFixed(9)});
     };
     material.customProgramCacheKey=()=>cacheKey+'|forest-atlas-'+asset.entry.id;
     if (modelsEnabled) patchBirchBlend(material,true,time);
+    if (asset.entry.role==='shrub') patchBirchLod(material,true,-100,o.quality.forestShrubCardR,1);
     const geometry=source.geometry.clone(); extra.push(geometry);
     const uv=geometry.getAttribute('uv'), plane=new Float32Array(uv.count);
     for(let i=0;i<uv.count;i+=4) { const col=Math.round(Math.min(...[0,1,2,3].map(j=>uv.getX(i+j)))/cellU); for(let j=0;j<4;j++) plane[i+j]=col; }
@@ -86,7 +115,7 @@ vNormalMapUv += vec2(fu,forestRow*${cellV.toFixed(9)});
   const modelSlots = new Map<string,ModelSlot[]>();
   const patched = new Set<THREE.Material>();
   for(const asset of assets) for(let variant=0;variant<asset.models.length;variant++) for(let level=0;level<asset.models[variant].length;level++) {
-    const capacity=level===0?o.quality.birchDetailCount:o.quality.birchSimpleCount;
+    const capacity=asset.entry.role==='shrub'?(level===0?o.quality.forestShrubDetailCount:o.quality.forestShrubSimpleCount):(level===0?o.quality.birchDetailCount:o.quality.birchSimpleCount);
     const group: ModelSlot[]=[];
     for(const part of asset.models[variant][level]) {
       const material=part.material, leaf=material.alphaTest>0;
@@ -100,7 +129,7 @@ vNormalMapUv += vec2(fu,forestRow*${cellV.toFixed(9)});
       const geo=part.geometry.clone();extra.push(geo);
       const blend=new THREE.InstancedBufferAttribute(new Float32Array(capacity*3),3);geo.setAttribute('birchBlend',blend);
       const mesh=new THREE.InstancedMesh(geo,material,capacity);mesh.count=0;mesh.frustumCulled=false;
-      mesh.castShadow=o.quality.shadows&&o.quality.birchShadows;mesh.receiveShadow=mesh.castShadow;
+      mesh.castShadow=asset.entry.role==='tree'&&o.quality.shadows&&o.quality.birchShadows;mesh.receiveShadow=mesh.castShadow;
       mesh.name=`forest-${asset.entry.id}-${variant}-lod${level}`;
       const depth=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,map:leaf?material.map:null,alphaTest:leaf?material.alphaTest:0,side:leaf?THREE.DoubleSide:THREE.FrontSide});
       o.foliage.patch(depth,leaf?1:2);patchBirchBlend(depth,false,time);mesh.customDepthMaterial=depth;extra.push(depth);
@@ -109,10 +138,10 @@ vNormalMapUv += vec2(fu,forestRow*${cellV.toFixed(9)});
     modelSlots.set(`${asset.entry.id}:${variant}:${level}`,group);
   }
   let lastX=Infinity,lastZ=Infinity,lastFx=0,lastFz=0;
-  const stats: ForestStats={trees:plants.length,cards:0,lod0:0,lod1:0,shrubs:0,grass:0,species:assets.map(a=>a.entry.id)};
+  const stats: ForestStats={trees:plants.filter(p=>p.asset.entry.role==='tree').length,cards:0,lod0:0,lod1:0,shrubs:0,shrubLod0:0,shrubLod1:0,grass:0,species:assets.map(a=>a.entry.id)};
   const update=(cam:THREE.Vector3,fwd:THREE.Vector3,cardR:number) => {
     const now=performance.now()/1000;time.value=now;
-    const released=[...selection.states.values()].some(s=>s.to===0&&birchBlend(s,now)===0);
+    const released=[...selection.states.values(),...shrubSelection.states.values()].some(s=>s.to===0&&birchBlend(s,now)===0);
     if (!released && Math.hypot(cam.x-lastX,cam.z-lastZ)<4 && fwd.x*lastFx+fwd.z*lastFz>0.985) return;
     lastX=cam.x;lastZ=cam.z;lastFx=fwd.x;lastFz=fwd.z;
     for(const s of slots.values()) s.n=0;
@@ -124,28 +153,31 @@ vNormalMapUv += vec2(fu,forestRow*${cellV.toFixed(9)});
       const dx=(cx+a+0.5)*25-cam.x,dz=(cz+b+0.5)*25-cam.z,d=Math.hypot(dx,dz),padding=36;
       if(d-padding>cardR || (d>80&&(dx*fwd.x+dz*fwd.z+padding)/d<0.26) || o.fog.pathMin(dx,dz,padding)>o.quality.forestFogFar+10)continue;
       for(const p of list) {
-        if((p.x-cam.x)**2+(p.z-cam.z)**2>cardR**2) continue;
+        if((p.x-cam.x)**2+(p.z-cam.z)**2>(p.asset.entry.role==='shrub'?o.quality.forestShrubCardR:cardR)**2) continue;
         visible.push(p);
       }
     }
-    if(modelsEnabled) selection.update(visible.filter(p=>(p.x-cam.x)**2+(p.z-cam.z)**2<(selection.radius+10)**2).map(p=>({i:p.id,dd:(p.x-cam.x)**2+(p.z-cam.z)**2})),now);
+    if(modelsEnabled) selection.update(visible.filter(p=>p.asset.entry.role==='tree'&&(p.x-cam.x)**2+(p.z-cam.z)**2<(selection.radius+10)**2).map(p=>({i:p.id,dd:(p.x-cam.x)**2+(p.z-cam.z)**2})),now);
+    if(shrubsEnabled) shrubSelection.update(visible.filter(p=>p.asset.entry.role==='shrub'&&(p.x-cam.x)**2+(p.z-cam.z)**2<40**2).map(p=>({i:p.id,dd:(p.x-cam.x)**2+(p.z-cam.z)**2})),now);
     const seen=new Set(visible.map(p=>p.id));
-    for(const i of selection.states.keys()) if(!seen.has(i))visible.push(plants[i]);
+    for(const i of [...selection.states.keys(),...shrubSelection.states.keys()]) if(!seen.has(i))visible.push(plants[i]);
     for(const p of visible) {
-      const state=selection.states.get(p.id);
+      const state=stateFor(p);
       if(!state||birchBlend(state,now)<1||state.to===0) {
         const s=slots.get(p.asset.entry.id)!;
         s.mesh.setMatrixAt(s.n,p.matrix);s.row.setX(s.n,p.row);s.yaw.setX(s.n,p.yaw);
         s.blend.setXYZ(s.n,state?.from??0,state?.to??0,state?.start??0);s.n++;
       }
     }
-    stats.lod0=0;stats.lod1=0;
-    for(const [i,state] of selection.states) {
+    stats.lod0=0;stats.lod1=0;stats.shrubLod0=0;stats.shrubLod1=0;
+    stats.shrubs=visible.filter(p=>p.asset.entry.role==='shrub').length;
+    for(const [i,state] of [...selection.states,...shrubSelection.states]) {
       const p=plants[i],variant=Math.min(p.row,p.asset.models.length-1);
       for(const s of modelSlots.get(`${p.asset.entry.id}:${variant}:${state.level}`)??[]) {
         s.mesh.setMatrixAt(s.n,p.matrix);s.blend.setXYZ(s.n,state.from,state.to,state.start);s.n++;
       }
-      if(state.level===0)stats.lod0++;else stats.lod1++;
+      if(p.asset.entry.role==='shrub'){if(state.level===0)stats.shrubLod0++;else stats.shrubLod1++;}
+      else {if(state.level===0)stats.lod0++;else stats.lod1++;}
     }
     for(const group of modelSlots.values())for(const s of group){s.mesh.count=s.n;s.mesh.visible=s.n>0;s.mesh.instanceMatrix.needsUpdate=true;s.blend.needsUpdate=true;}
     stats.cards=0;
