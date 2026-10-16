@@ -11,6 +11,7 @@ import { smoothRoad } from "./roadCurve";
 import { createForestRuntime, type ForestStats } from "./forestRuntime";
 import { BirchSelection, birchBlend } from "./birchSelection";
 import { cardCoverage, patchBirchLod, patchBirchBlend } from "./birchLod";
+import { loadForestFloor, floorPars, floorColorGlsl, floorNormalGlsl, type ForestFloorMode } from './forestFloor';
 
 export interface SceneData {
   name: string;
@@ -77,13 +78,15 @@ function rng(seed: number) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 }
 
-export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer, opts: { quality: QualityPreset; birchPreview?: boolean; birchCards?: boolean; allBirches?: boolean; forestMix?: boolean; forestStage?: string; treeGrounding?: "off" | "shade" | "full" }): Promise<BuiltScene> {
+export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer, opts: { quality: QualityPreset; birchPreview?: boolean; birchCards?: boolean; allBirches?: boolean; forestMix?: boolean; forestStage?: string; treeGrounding?: "off" | "shade" | "full"; forestFloor?: ForestFloorMode }): Promise<BuiltScene> {
   const [data, bin] = await Promise.all([
     fetch(base + "scene.json").then((r) => r.json() as Promise<SceneData>),
     fetch(base + "scene.bin").then((r) => r.arrayBuffer()),
   ]);
   const tl = new THREE.TextureLoader();
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
+  const floorMode=opts.forestFloor??(opts.forestMix?'full':'off');
+  const arrayFloor=floorMode!=='off';
   const tex = (url: string, srgb = true, repeat = true) =>
     tl.loadAsync(url).then((t) => {
       t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
@@ -93,13 +96,13 @@ export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer,
     });
   const T = Object.fromEntries(
     await Promise.all(
-      ["grass", "soil", "forestfloor", "moss", "asphalt", "gravel", "bark", "roof", "facade_brick", "facade_plaster", "wall_brick", "wall_plaster"].map(async (n) => [n, await tex(ASSETS + n + ".jpg")] as const),
+      ["grass", "soil", ...(!arrayFloor?["forestfloor"]:[]), "moss", "asphalt", "gravel", "bark", "roof", "facade_brick", "facade_plaster", "wall_brick", "wall_plaster"].map(async (n) => [n, await tex(ASSETS + n + ".jpg")] as const),
     ),
   ) as Record<string, THREE.Texture>;
   // PBR companions (TextureCan / ambientCG): normal maps and packed AO (R) + roughness (G)
   const N = Object.fromEntries(
     await Promise.all(
-      ["grass_n", "soil_n", "forestfloor_n", "gravel_n", "gravel_orm", "bark_n", "bark_orm", "roof_n", "roof_orm", "facade_brick_n", "facade_brick_orm", "facade_plaster_n", "facade_plaster_orm", "wall_brick_n", "wall_brick_orm", "wall_plaster_n", "wall_plaster_orm"].map(async (n) => [n, await tex(ASSETS + n + ".jpg", false)] as const),
+      ["grass_n", "soil_n", ...(!arrayFloor?["forestfloor_n"]:[]), "gravel_n", "gravel_orm", "bark_n", "bark_orm", "roof_n", "roof_orm", "facade_brick_n", "facade_brick_orm", "facade_plaster_n", "facade_plaster_orm", "wall_brick_n", "wall_brick_orm", "wall_plaster_n", "wall_plaster_orm"].map(async (n) => [n, await tex(ASSETS + n + ".jpg", false)] as const),
     ),
   ) as Record<string, THREE.Texture>;
   const pbr = (role: string, normalScale = 1) => ({ normalMap: N[role + "_n"], normalScale: new THREE.Vector2(normalScale, normalScale), aoMap: N[role + "_orm"], roughnessMap: N[role + "_orm"], roughness: 1 });
@@ -137,6 +140,7 @@ export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer,
   let triangles = 0;
   const disposables: { dispose(): void }[] = [];
   const track = <T extends { dispose(): void }>(o: T) => (disposables.push(o), o);
+  const floorArrays=arrayFloor?track(await loadForestFloor(ASSETS,opts.quality.groundNormals,floorMode==='base'||!opts.quality.liteTrees?1024:512,maxAniso)):undefined;
 
   const gridH = (g: SceneData["far"], H: Float32Array, x: number, z: number) => {
     const fi = (x - g.x0) / g.step,
@@ -234,12 +238,11 @@ export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer,
         uSplat: { value: splat },
         uGrass: { value: T.grass },
         uSoil: { value: T.soil },
-        uForest: { value: T.forestfloor },
+        ...(floorArrays?{uFloor:{value:floorArrays.color},uFloorN:{value:floorArrays.normal}}:{uForest:{value:T.forestfloor},uForestN:{value:N.forestfloor_n}}),
         uMoss: { value: T.moss },
         uFar: { value: farTex },
         uGrassN: { value: N.grass_n },
         uSoilN: { value: N.soil_n },
-        uForestN: { value: N.forestfloor_n },
         ...shade.uniforms,
         ...forest?.grounding?.uniforms,
       });
@@ -250,7 +253,8 @@ export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer,
         .replace(
           "#include <common>",
           `#include <common>
-uniform sampler2D uSplat, uGrass, uSoil, uForest, uMoss, uFar, uGrassN, uSoilN, uForestN;
+uniform sampler2D uSplat, uGrass, uSoil, uMoss, uFar, uGrassN, uSoilN;
+${floorArrays?floorPars:'uniform sampler2D uForest, uForestN;'}
 varying float vEdge; varying vec2 vSplatUv; varying vec2 vFarUv; varying vec3 vWPos; varying vec3 vWN;
 ${shade.groundPars}
 ${forest?.grounding?.pars ?? ""}
@@ -271,9 +275,11 @@ vec3 grass = tileTex(uGrass, vWPos.xz);
 // Moss grows in patches rather than coating the whole woodland floor.
 float mossPatch = 0.0;
 if (sp.b > 0.01) mossPatch = smoothstep(0.38, 0.72, shNoise(vWPos.xz / 4.5) * 0.7 + shNoise(vWPos.xz / 1.3) * 0.3);
+vec2 groundShade=texture2D(uShade,(vWPos.xz-uShadeO)/uShadeS).rg;
+${floorArrays?floorColorGlsl(floorMode):''}
 vec3 col = grass * sp.r
   + tileTex(uSoil, vWPos.xz) * sp.g
-  + mix(tileTex(uForest, vWPos.xz), tileTex(uMoss, vWPos.xz * 0.7), 0.08 + mossPatch * 0.55) * 0.55 * sp.b
+  + ${floorArrays?'forestc':'mix(tileTex(uForest, vWPos.xz), tileTex(uMoss, vWPos.xz * 0.7), 0.08 + mossPatch * 0.55)'} * 0.55 * sp.b
   + grass * vec3(1.35, 1.15, 0.55) * wStub;
 col /= max(0.001, sp.r + sp.g + sp.b + wStub);
 vec3 farc = texture2D(uFar, vFarUv).rgb * 1.6;
@@ -282,7 +288,7 @@ float lc = max(0.04, dot(col, vec3(0.333)));
 col = mix(col, col * clamp(farc / max(0.04, dot(farc, vec3(0.333))), 0.75, 1.3) * clamp(dot(farc, vec3(0.333)) / lc, 0.7, 1.4), 0.35);
 // canopy shade, sun flecks and contact AO under trees (canopyShade.ts)
 { vec2 wp = vWPos.xz;
-${shade.groundGlsl} }
+${shade.groundGlsl.replace('texture2D(uShade, (wp - uShadeO) / uShadeS).rg','groundShade')} }
 // pull the tiled textures towards the real satellite colour in the distance and at the corridor edge
 float dist = length(vWPos - cameraPosition);
 float blendFar = clamp(max(vEdge, (dist - 250.0) / 600.0), 0.0, 1.0);
@@ -307,7 +313,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
   vec2 nuv = vWPos.xz / 2.2;
   vec3 nG = texture2D(uGrassN, nuv).xyz * 2.0 - 1.0;
   vec3 nS = texture2D(uSoilN, nuv).xyz * 2.0 - 1.0;
-  vec3 nF = texture2D(uForestN, nuv).xyz * 2.0 - 1.0;
+  ${floorArrays?floorNormalGlsl(floorMode):'vec3 nF = texture2D(uForestN, nuv).xyz * 2.0 - 1.0;'}
   vec3 nt = nG * (sp.r + wStub) + nS * sp.g + nF * sp.b;
   nt.xy *= 0.9 * (1.0 - blendFar);
   nt = normalize(nt);
@@ -319,6 +325,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
 #endif`,
         );
     };
+    m.customProgramCacheKey=()=>`terrain-floor-${floorMode}`;
     addTiled(g, m, 200, "terrain-near", true);
   }
 

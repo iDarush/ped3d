@@ -15,6 +15,7 @@
       :forest-mix="forestMix"
       :forest-stage="forestStage"
       :tree-grounding="treeGrounding"
+      :forest-floor="forestFloor"
       :eye-height-m="eyeH"
       :time-s="timeS"
       :test-mode="testMode"
@@ -74,6 +75,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import RideView3D from "./components/RideView3D.vue";
 import RideScene3D from "./components/RideScene3D.vue";
 import { parseQuality } from "./lib/quality";
+import { parseForestFloor } from './lib/forestFloor';
 import { buildGeoTrack, type GeoPoint } from "./lib/geoTrack";
 
 const ROUTES = [
@@ -96,6 +98,7 @@ const quality = parseQuality(q.get("q"));
 const wind = q.get("wind") !== "0";
 const treeGrounding = q.get("grounding") === "off" ? "off" : q.get("grounding") === "shade" ? "shade" : "full";
 const forestMix = q.get("forest") === "mix";
+const forestFloor = parseForestFloor(q.get('floor'),forestMix);
 const forestStage = ["cards","trees","shrubs","grass","full"].includes(q.get("forestStage") ?? "") ? q.get("forestStage")! : "full";
 const allBirches = !forestMix && q.get("birch") === "all";
 const birchPreview = !forestMix && (allBirches || q.get("birch") === "1");

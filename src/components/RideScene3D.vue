@@ -16,6 +16,7 @@ import { RideClock } from "../lib/rideClock";
 import { loadProcScene, SUN_DIR, type BuiltScene } from "../lib/procScene";
 import { updateForestWall } from "../lib/forestFog";
 import { QUALITY, renderPixelRatio, type Quality } from "../lib/quality";
+import type { ForestFloorMode } from '../lib/forestFloor';
 
 const props = withDefaults(
   defineProps<{
@@ -42,6 +43,7 @@ const props = withDefaults(
     forestMix?: boolean;
     forestStage?: string;
     treeGrounding?: "off" | "shade" | "full";
+    forestFloor?: ForestFloorMode;
     /** test mode: fixed animation time [s] (for reproducible frames / wind sequences) */
     timeS?: number;
   }>(),
@@ -178,7 +180,7 @@ function frame(now: number) {
   built.update(camera.position, fwd, { detailR: Math.min(preset.detailR, cardR), cardR, grassR: preset.grassR, fogFar: fog.far });
   const t0 = performance.now();
   renderer.render(scene, camera);
-  (window as unknown as { __rideInfo: object }).__rideInfo = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, textures: renderer.info.memory.textures, blades: built.grassStats().blades, birches: built.birchStats(), vegetation: built.forestStats(), render: { width: renderWidth, height: renderHeight } };
+  (window as unknown as { __rideInfo: object }).__rideInfo = { distanceM:d,calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, textures: renderer.info.memory.textures, blades: built.grassStats().blades, birches: built.birchStats(), vegetation: built.forestStats(), render: { width: renderWidth, height: renderHeight } };
   if (props.testMode) {
     // headless (software GL) is far too slow for a continuous loop: render a few frames, report the cost, stop
     renderer.getContext().readPixels(0, 0, 1, 1, renderer.getContext().RGBA, renderer.getContext().UNSIGNED_BYTE, new Uint8Array(4)); // wait for the GPU
@@ -211,7 +213,7 @@ onMounted(async () => {
   window.addEventListener("resize", resize);
 
   const base = props.scene.endsWith("/") ? props.scene : props.scene + "/";
-  const [hdr, b] = await Promise.all([new HDRLoader().loadAsync("scene-assets/sky.hdr"), loadProcScene(base, renderer, { quality: preset, birchPreview: props.birchPreview, birchCards: props.birchCards, allBirches: props.allBirches, forestMix: props.forestMix, forestStage: props.forestStage, treeGrounding: props.treeGrounding })]);
+  const [hdr, b] = await Promise.all([new HDRLoader().loadAsync("scene-assets/sky.hdr"), loadProcScene(base, renderer, { quality: preset, birchPreview: props.birchPreview, birchCards: props.birchCards, allBirches: props.allBirches, forestMix: props.forestMix, forestStage: props.forestStage, treeGrounding: props.treeGrounding, forestFloor: props.forestFloor })]);
   if (disposed) return;
   built = b;
   hdr.mapping = THREE.EquirectangularReflectionMapping;
