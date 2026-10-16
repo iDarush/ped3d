@@ -13,6 +13,19 @@ export const SPECIES = [
   { id: 'setaria', role: 'grass', models: ['setaria_a', 'setaria_b'], lods: [0] },
 ];
 const copy = (from, to) => { mkdirSync(dirname(to), { recursive: true }); copyFileSync(from, to); };
+export const GROUND_FILES = ['forestfloor_h.jpg', ...['forest_grass','forest_leaves','forest_rock'].flatMap(n=>['', '_n', '_orm', '_h'].map(s=>`${n}${s}.jpg`))];
+export function prepareGroundAssets(root) {
+  const source=resolve(root,'models/ground'), target=resolve(root,'public/scene-assets');
+  if(!existsSync(source))return;
+  for(const file of GROUND_FILES)if(!existsSync(resolve(source,'textures',file)))throw new Error(`Missing ground texture ${file}`);
+  const additions=JSON.parse(readFileSync(resolve(source,'sources_addition.json'),'utf8'));
+  const creditsPath=resolve(target,'sources.json');
+  const credits=existsSync(creditsPath)?JSON.parse(readFileSync(creditsPath,'utf8')):{};
+  for(const file of GROUND_FILES)copy(resolve(source,'textures',file),resolve(target,file));
+  credits.texturecan={...credits.texturecan,...additions.texturecan};
+  mkdirSync(target,{recursive:true});
+  writeFileSync(creditsPath,JSON.stringify(credits,null,1)+'\n');
+}
 const textures = dir => existsSync(dir) ? readdirSync(dir).filter(f => f.endsWith('.ktx2')).sort().map(f => `textures/${f}`) : [];
 function checkGlb(file, source) {
   const buffer = readFileSync(file);
@@ -23,6 +36,7 @@ function checkGlb(file, source) {
   }
 }
 export function prepareLocalModels(root) {
+  prepareGroundAssets(root);
   const publicAssets = resolve(root, 'public/scene-assets');
   const manifest = { version: 1, species: [] };
   for (const spec of SPECIES) {

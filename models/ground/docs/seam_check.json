@@ -1,0 +1,119 @@
+{
+ "forest_grass.jpg": {
+  "size": [
+   1024,
+   1024
+  ],
+  "bytes": 211553,
+  "seam_x": 1.11,
+  "seam_y": 0.94
+ },
+ "forest_grass_h.jpg": {
+  "size": [
+   512,
+   512
+  ],
+  "bytes": 76772,
+  "seam_x": 1.07,
+  "seam_y": 0.85
+ },
+ "forest_grass_n.jpg": {
+  "size": [
+   1024,
+   1024
+  ],
+  "bytes": 416887,
+  "seam_x": 1.02,
+  "seam_y": 1.01
+ },
+ "forest_grass_orm.jpg": {
+  "size": [
+   512,
+   512
+  ],
+  "bytes": 80240,
+  "seam_x": 1.05,
+  "seam_y": 0.97
+ },
+ "forest_leaves.jpg": {
+  "size": [
+   1024,
+   1024
+  ],
+  "bytes": 156658,
+  "seam_x": 1.07,
+  "seam_y": 1.28
+ },
+ "forest_leaves_h.jpg": {
+  "size": [
+   512,
+   512
+  ],
+  "bytes": 86848,
+  "seam_x": 0.61,
+  "seam_y": 1.12
+ },
+ "forest_leaves_n.jpg": {
+  "size": [
+   1024,
+   1024
+  ],
+  "bytes": 636154,
+  "seam_x": 0.77,
+  "seam_y": 0.96
+ },
+ "forest_leaves_orm.jpg": {
+  "size": [
+   512,
+   512
+  ],
+  "bytes": 93158,
+  "seam_x": 0.96,
+  "seam_y": 0.99
+ },
+ "forest_rock.jpg": {
+  "size": [
+   1024,
+   1024
+  ],
+  "bytes": 201307,
+  "seam_x": 1.12,
+  "seam_y": 1.16
+ },
+ "forest_rock_h.jpg": {
+  "size": [
+   512,
+   512
+  ],
+  "bytes": 75915,
+  "seam_x": 1.17,
+  "seam_y": 1.18
+ },
+ "forest_rock_n.jpg": {
+  "size": [
+   1024,
+   1024
+  ],
+  "bytes": 672067,
+  "seam_x": 1.0,
+  "seam_y": 0.93
+ },
+ "forest_rock_orm.jpg": {
+  "size": [
+   512,
+   512
+  ],
+  "bytes": 77120,
+  "seam_x": 1.12,
+  "seam_y": 1.0
+ },
+ "forestfloor_h.jpg": {
+  "size": [
+   512,
+   512
+  ],
+  "bytes": 49468,
+  "seam_x": 1.07,
+  "seam_y": 1.13
+ }
+}

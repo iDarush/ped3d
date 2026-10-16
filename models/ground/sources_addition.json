@@ -1,0 +1,33 @@
+{
+ "texturecan": {
+  "forest_grass": {
+   "page": "https://www.texturecan.com/details/130/",
+   "id": "ground_0009",
+   "zip_1k": "https://www.texturecan.com/downloads/ground_0009/ground_0009_1k_ReJG9N.zip",
+   "license": "CC0 1.0 (https://www.texturecan.com/terms/)",
+   "title": "Grassland Texture (Ground 0009)"
+  },
+  "forest_leaves": {
+   "page": "https://www.texturecan.com/details/243/",
+   "id": "ground_0028",
+   "zip_1k": "https://www.texturecan.com/downloads/ground_0028/ground_0028_1k_6Vu6Ws.zip",
+   "license": "CC0 1.0 (https://www.texturecan.com/terms/)",
+   "title": "Ground Covered by Maple Leaves (Ground 0028)"
+  },
+  "forest_rock": {
+   "page": "https://www.texturecan.com/details/265/",
+   "id": "ground_0035",
+   "zip_1k": "https://www.texturecan.com/downloads/ground_0035/ground_0035_1k_4gB8Sq.zip",
+   "license": "CC0 1.0 (https://www.texturecan.com/terms/)",
+   "title": "Sandy Trail Texture with Rocks, Pebbles and Plants (Ground 0035)"
+  },
+  "forestfloor_h": {
+   "page": "https://www.texturecan.com/details/92/",
+   "id": "ground_0006",
+   "zip_1k": "https://www.texturecan.com/downloads/ground_0006/ground_0006_1k_hjA45q.zip",
+   "license": "CC0 1.0 (https://www.texturecan.com/terms/)",
+   "note": "height map of the existing forestfloor set",
+   "title": "Forest Ground Texture with Twigs, Pebbles and Rocks (Ground 0006)"
+  }
+ }
+}

@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, existsSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, dirname } from 'node:path';
-import { prepareLocalModels } from '../../tools/prepare-local-models.mjs';
+import { prepareLocalModels, prepareGroundAssets, GROUND_FILES } from '../../tools/prepare-local-models.mjs';
 
 it('stages independent species, removes stale optional assets and preserves unrelated output', () => {
   const root = mkdtempSync(resolve(tmpdir(), 'ride3d-stage-'));
@@ -27,5 +27,26 @@ it('stages independent species, removes stale optional assets and preserves unre
   } finally {
     if (!root.startsWith(resolve(tmpdir(), 'ride3d-stage-'))) throw new Error('Unsafe test directory');
     rmSync(root, { recursive: true });
+  }
+});
+
+it('stages the fixed ground list and merges credits without removing shared assets',()=>{
+  const root=mkdtempSync(resolve(tmpdir(),'ride3d-ground-'));
+  try {
+    const textures=resolve(root,'models/ground/textures'),target=resolve(root,'public/scene-assets');
+    mkdirSync(textures,{recursive:true});mkdirSync(target,{recursive:true});
+    for(const file of GROUND_FILES)writeFileSync(resolve(textures,file),file);
+    writeFileSync(resolve(textures,'unrelated.jpg'),'ignored');
+    writeFileSync(resolve(target,'grass.jpg'),'keep');
+    writeFileSync(resolve(target,'sources.json'),JSON.stringify({ambientcg:{grass:'existing'},texturecan:{bark:{id:'keep'}}}));
+    writeFileSync(resolve(root,'models/ground/sources_addition.json'),JSON.stringify({texturecan:{forest_leaves:{id:'ground_0028'}}}));
+    prepareGroundAssets(root);prepareGroundAssets(root);
+    expect(readFileSync(resolve(target,'grass.jpg'),'utf8')).toBe('keep');
+    expect(existsSync(resolve(target,'unrelated.jpg'))).toBe(false);
+    expect(JSON.parse(readFileSync(resolve(target,'sources.json'),'utf8'))).toEqual({ambientcg:{grass:'existing'},texturecan:{bark:{id:'keep'},forest_leaves:{id:'ground_0028'}}});
+    expect(readFileSync(resolve(target,'forest_leaves_h.jpg'),'utf8')).toBe('forest_leaves_h.jpg');
+  } finally {
+    if(!root.startsWith(resolve(tmpdir(),'ride3d-ground-')))throw new Error('Unsafe test directory');
+    rmSync(root,{recursive:true});
   }
 });
