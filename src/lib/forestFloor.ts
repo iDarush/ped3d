@@ -68,6 +68,7 @@ float flBlend(float mask,float baseHeight,float layerHeight){
 
 // Initially an exact color-path replacement of tileTex(uForest,...).
 export function floorColorGlsl(mode: ForestFloorMode) {
+  const cover=mode==='cover'||mode==='full';
   return `
 vec3 flW=vec3(0.0);
 vec2 fwp=vWPos.xz;
@@ -81,12 +82,28 @@ if(sp.b>0.0){
  vec3 flColor=flBase.rgb;float flHeight=flBase.a;
  ${mode!=='base'?`
  if(sp.b>0.01&&flFade>0.0){
+  ${cover?`
+  float flSlope=1.0-clamp(normalize(vWN).y,0.0,1.0);
+  float flRock=smoothstep(0.78,0.85,shNoise(fwp/13.0+31.7)*0.75+shNoise(fwp/3.0)*0.25+1.2*flSlope)*(1.0-0.6*groundShade.g)*flFade;
+  if(flRock>0.002){
+   vec4 layer=flSample(uFloor,fwp,3,flDx,flDy);
+   flW.z=flBlend(flRock,flHeight,layer.a);
+   flColor=mix(flColor,layer.rgb,flW.z);flHeight=mix(flHeight,layer.a,flW.z);
+  }`:''}
   float flLeaves=smoothstep(0.62,0.69,shNoise(fwp/4.0+11.0)*0.5+shNoise(fwp/1.3+3.0)*0.35+shNoise(fwp/0.45)*0.15+0.2*groundShade.r+0.3*groundShade.g-0.12)*flFade;
   if(flLeaves>0.002){
    vec4 layer=flSample(uFloor,fwp,2,flDx,flDy);
    flW.y=flBlend(flLeaves,flHeight,layer.a);
    flColor=mix(flColor,layer.rgb,flW.y);flHeight=mix(flHeight,layer.a,flW.y);
+   flW.z*=1.0-flW.y;
   }
+  ${cover?`
+  float flGrass=smoothstep(0.46,0.54,shNoise(fwp/9.0-7.0)*0.55+shNoise(fwp/3.0+9.0)*0.3+shNoise(fwp/0.6)*0.15+0.45*(1.0-groundShade.r)-0.25*groundShade.g-0.18)*flFade;
+  if(flGrass>0.002){
+   vec4 layer=flSample(uFloor,fwp,1,flDx,flDy);
+   flW.x=flBlend(flGrass,flHeight,layer.a);
+   flColor=mix(flColor,layer.rgb,flW.x);flW.yz*=1.0-flW.x;
+  }`:''}
  }`:''}
  flColor*=0.65+0.9*flMacro/max(0.05,dot(flColor,vec3(0.33))*0.5+0.5*flMacro);
  forestc=mix(flColor,tileTex(uMoss,fwp*0.7),(0.08+mossPatch*0.55)*(1.0-dot(flW,vec3(1.0))));
