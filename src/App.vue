@@ -58,6 +58,7 @@
         </select>
       </label>
       <label v-if="proc"><input v-model="shadows" type="checkbox" /> Shadows</label>
+      <button v-if="proc && forestMix && forestStage !== 'full'" @click="restoreFullForest">Полный лес (сейчас {{ forestStage }})</button>
       <span v-if="proc" class="muted">{{ fpsText }}</span>
       <label v-if="!proc"><input v-model="satellite" type="checkbox" /> Satellite</label>
       <label><input v-model="chase" type="checkbox" /> Chase cam</label>
@@ -101,6 +102,12 @@ const birchPreview = !forestMix && (allBirches || q.get("birch") === "1");
 const birchCards = allBirches || (birchPreview && q.get("cards") !== "0");
 const eyeH = Number(q.get("eye") ?? 1.6); // eye height [m], e.g. &eye=0.4 for a low view
 const timeS = Number(q.get("t") ?? 3);
+function restoreFullForest() {
+  const u = new URL(location.href);
+  u.searchParams.delete("forestStage");
+  u.searchParams.set("d", String(Math.round(simDistance.value)));
+  location.href = u.toString();
+}
 function setQuality(v: string) {
   // presets change geometry and renderer settings, so reload with the new parameter
   const u = new URL(location.href);
