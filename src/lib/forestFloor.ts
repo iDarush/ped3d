@@ -51,23 +51,48 @@ uniform sampler2DArray uFloor;
 #ifdef GROUND_NORMALS
 uniform sampler2DArray uFloorN;
 #endif
+const vec4 FL_TILE=vec4(2.2,1.2,1.4,2.6);
+vec2 flRotation(int layer){
+ return layer==1?vec2(0.6,0.8):layer==2?vec2(-0.28,0.96):layer==3?vec2(0.96,-0.28):vec2(1.0,0.0);
+}
+vec2 flTurn(vec2 p,int layer){vec2 r=flRotation(layer);return mat2(r.x,r.y,-r.y,r.x)*p;}
+vec4 flSample(sampler2DArray tex,vec2 p,int layer,vec2 dx,vec2 dy){
+ return textureGrad(tex,vec3(flTurn(p,layer)/FL_TILE[layer]+float(layer)*vec2(0.37,0.61),float(layer)),flTurn(dx,layer)/FL_TILE[layer],flTurn(dy,layer)/FL_TILE[layer]);
+}
+float flBlend(float mask,float baseHeight,float layerHeight){
+ float a=layerHeight*0.5+mask,b=baseHeight*0.5+1.0-mask,limit=max(a,b)-0.2;
+ float wa=max(a-limit,0.0),wb=max(b-limit,0.0);
+ return wa/(wa+wb+0.00001);
+}
 `;
 
 // Initially an exact color-path replacement of tileTex(uForest,...).
-export function floorColorGlsl(_mode: ForestFloorMode) {
+export function floorColorGlsl(mode: ForestFloorMode) {
   return `
 vec3 flW=vec3(0.0);
 vec2 fwp=vWPos.xz;
+vec2 flDx=dFdx(fwp),flDy=dFdy(fwp);
+float flFade=1.0-smoothstep(90.0,140.0,length(vWPos-cameraPosition));
 vec3 forestc=vec3(0.0);
 if(sp.b>0.0){
- vec4 flBase=texture(uFloor,vec3(fwp/2.2,0.0));
- float flMacro=dot(texture(uFloor,vec3(mat2(0.8,-0.6,0.6,0.8)*fwp/29.0,0.0)).rgb,vec3(0.33));
- vec3 flColor=flBase.rgb;
+ vec4 flBase=flSample(uFloor,fwp,0,flDx,flDy);
+ mat2 flMacroR=mat2(0.8,-0.6,0.6,0.8);
+ float flMacro=dot(textureGrad(uFloor,vec3(flMacroR*fwp/29.0,0.0),flMacroR*flDx/29.0,flMacroR*flDy/29.0).rgb,vec3(0.33));
+ vec3 flColor=flBase.rgb;float flHeight=flBase.a;
+ ${mode!=='base'?`
+ if(sp.b>0.01&&flFade>0.0){
+  float flLeaves=smoothstep(0.62,0.69,shNoise(fwp/4.0+11.0)*0.5+shNoise(fwp/1.3+3.0)*0.35+shNoise(fwp/0.45)*0.15+0.2*groundShade.r+0.3*groundShade.g-0.12)*flFade;
+  if(flLeaves>0.002){
+   vec4 layer=flSample(uFloor,fwp,2,flDx,flDy);
+   flW.y=flBlend(flLeaves,flHeight,layer.a);
+   flColor=mix(flColor,layer.rgb,flW.y);flHeight=mix(flHeight,layer.a,flW.y);
+  }
+ }`:''}
  flColor*=0.65+0.9*flMacro/max(0.05,dot(flColor,vec3(0.33))*0.5+0.5*flMacro);
- forestc=mix(flColor,tileTex(uMoss,fwp*0.7),0.08+mossPatch*0.55);
+ forestc=mix(flColor,tileTex(uMoss,fwp*0.7),(0.08+mossPatch*0.55)*(1.0-dot(flW,vec3(1.0))));
 }
 `;
 }
 export function floorNormalGlsl(_mode: ForestFloorMode) {
-  return 'vec3 nF=texture(uFloorN,vec3(vWPos.xz/2.2,0.0)).xyz*2.0-1.0;';
+  return 'vec3 nF=flSample(uFloorN,fwp,0,flDx,flDy).xyz*2.0-1.0;';
 }
