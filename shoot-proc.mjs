@@ -6,7 +6,9 @@ const D = (process.env.DS ?? "3000,3700,4300,4900,5450,5850").split(",").map(Num
 const cams = (process.env.CAMS ?? "eye,chase").split(",");
 const extra = process.env.EXTRA ?? "";
 const floorStages=(process.env.FLOOR_STAGES??'').split(',').filter(Boolean);
-const variants=floorStages.length?floorStages.map(stage=>{const query=new URLSearchParams(extra);query.set('floor',stage);return query.toString();}):[extra];
+const vergeStages=(process.env.VERGE_STAGES??'').split(',').filter(Boolean);
+const floorVariants=floorStages.length?floorStages.map(stage=>{const query=new URLSearchParams(extra);query.set('floor',stage);return query.toString();}):[extra];
+const variants=floorVariants.flatMap(extra=>vergeStages.length?vergeStages.map(stage=>{const query=new URLSearchParams(extra);query.set('fieldVerge',stage);return query.toString();}):[extra]);
 const motionSeconds = Math.min(30, Math.max(0, Number(process.env.MOTION_SECONDS ?? 0) || 0));
 const motionSpeed = Number(new URLSearchParams(extra).get("speed") ?? 25);
 const warmupSeconds = Math.max(0, Math.min(30, Number(process.env.WARMUP_SECONDS ?? 2)));
@@ -25,7 +27,7 @@ let failures = 0;
 for (const extra of variants)
  for (const d of D)
   for (const cam of cams) {
-    const name = process.env.NAME ?? `proc-${d}m-${cam}${process.env.SUFFIX ?? ""}${floorStages.length?'-floor-'+new URLSearchParams(extra).get('floor'):''}`;
+    const name = process.env.NAME ?? `proc-${d}m-${cam}${process.env.SUFFIX ?? ""}${floorStages.length?'-floor-'+new URLSearchParams(extra).get('floor'):''}${vergeStages.length?'-verge-'+new URLSearchParams(extra).get('fieldVerge'):''}`;
     if (process.argv[2] && !name.includes(process.argv[2])) continue;
     const page = await browser.newPage({ viewport: { width: Number(process.env.WIDTH ?? 1280), height: Number(process.env.HEIGHT ?? 720) }, deviceScaleFactor: Number(process.env.DPR ?? 1) });
     page.setDefaultTimeout(240000);

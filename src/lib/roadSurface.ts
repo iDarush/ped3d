@@ -4,11 +4,15 @@ import * as THREE from "three";
  * roadProfile holds signed distance from centre and ribbon half-width, in metres.
  * Shoulder variation uses world coordinates so adjacent segments stay connected.
  */
-export function patchRoadSurface(material: THREE.MeshStandardMaterial, gravel: THREE.Texture, shoulder = false, asphalt = false) {
+export function patchRoadSurface(material: THREE.MeshStandardMaterial, gravel: THREE.Texture, shoulder = false, asphalt = false, fieldVerge = false) {
   const previous = material.onBeforeCompile;
   const key = material.customProgramCacheKey();
   material.onBeforeCompile = (shader, renderer) => {
     previous.call(material, shader, renderer);
+    if(fieldVerge){
+      shader.vertexShader='attribute vec2 aFieldVerge; varying float vRoadField;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvRoadField=aFieldVerge.x;');
+      shader.fragmentShader='varying float vRoadField;\n'+shader.fragmentShader;
+    }
     shader.uniforms.uRoadGravel = { value: gravel };
     shader.vertexShader = `attribute vec2 roadProfile;
 varying vec2 vRoadProfile;
@@ -41,7 +45,7 @@ diffuseColor.rgb *= 0.91 + 0.16 * roadMacro;
 ${shoulder ? `
 // Dusty inner verge, earth-coloured outer verge; no alpha blending or overdraw.
 float verge = smoothstep(roadHalf - 0.32, roadHalf - 0.04, roadEdge + (roadFine - 0.5) * 0.12);
-diffuseColor.rgb *= mix(vec3(1.07, 1.02, 0.91), vec3(0.66, 0.73, 0.52), verge * 0.65);
+diffuseColor.rgb *= mix(vec3(1.07, 1.02, 0.91), ${fieldVerge?'mix(vec3(0.66,0.73,0.52),vec3(1.10,1.04,0.88),vRoadField)':'vec3(0.66, 0.73, 0.52)'}, verge * 0.65);
 ` : `
 // Broken dusty margin, in physical metres rather than a percentage of road width.
 float margin = 1.0 - smoothstep(0.03, 0.23 + roadMacro * 0.20,
@@ -58,5 +62,5 @@ diffuseColor.rgb *= 1.0 - wear * smoothstep(0.9, 1.6, roadHalf) * 0.055;
       "#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = max(roughnessFactor, 0.92);",
     );
   };
-  material.customProgramCacheKey = () => key + "|road-surface-v2|" + shoulder + "|" + asphalt;
+  material.customProgramCacheKey = () => key + "|road-surface-v2|" + shoulder + "|" + asphalt+'|field'+fieldVerge;
 }

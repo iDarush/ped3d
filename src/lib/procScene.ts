@@ -12,6 +12,7 @@ import { createForestRuntime, type ForestStats } from "./forestRuntime";
 import { BirchSelection, birchBlend } from "./birchSelection";
 import { cardCoverage, patchBirchLod, patchBirchBlend } from "./birchLod";
 import { loadForestFloor, floorPars, floorColorGlsl, floorNormalGlsl, type ForestFloorMode } from './forestFloor';
+import { createFieldVerge, fieldVergePars, fieldVergeWeightsGlsl, fieldVergeColorGlsl } from './fieldVerge';
 
 export interface SceneData {
   name: string;
@@ -78,7 +79,7 @@ function rng(seed: number) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 }
 
-export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer, opts: { quality: QualityPreset; birchPreview?: boolean; birchCards?: boolean; allBirches?: boolean; forestMix?: boolean; forestStage?: string; treeGrounding?: "off" | "shade" | "full"; forestFloor?: ForestFloorMode }): Promise<BuiltScene> {
+export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer, opts: { quality: QualityPreset; birchPreview?: boolean; birchCards?: boolean; allBirches?: boolean; forestMix?: boolean; forestStage?: string; treeGrounding?: "off" | "shade" | "full"; forestFloor?: ForestFloorMode; fieldVerge?: boolean }): Promise<BuiltScene> {
   const [data, bin] = await Promise.all([
     fetch(base + "scene.json").then((r) => r.json() as Promise<SceneData>),
     fetch(base + "scene.bin").then((r) => r.arrayBuffer()),
@@ -120,6 +121,7 @@ export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer,
   const nearEdge = typed(bin, data.layout.nearEdge) as Uint8Array;
   const farH = typed(bin, data.layout.farH) as Float32Array;
   const treesArr = typed(bin, data.layout.trees) as Float32Array;
+  const trackArr = typed(bin, data.layout.track) as Float32Array;
 
   const { near, far, landcover: lc, origin } = data;
   // land-cover pixels (R grass, G soil/field, B forest) for CPU-side use: grass placement, forest fog, canopy shade
@@ -158,6 +160,18 @@ export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer,
   const inNear = (x: number, z: number) => x >= near.x0 && z >= near.z0 && x <= near.x0 + (near.nx - 1) * near.step && z <= near.z0 + (near.nz - 1) * near.step;
   const heightAt = (x: number, z: number) => (inNear(x, z) ? gridH(near, nearH, x, z) : gridH(far, farH, x, z));
   const toLocal = (lon: number, lat: number): [number, number] => [(lon - origin.lon) * origin.kx, -(lat - origin.lat) * origin.ky];
+  const splatWeights=(x:number,z:number)=>{
+    const i=Math.floor((x-lc.x0)/lc.s),j=Math.floor((z-lc.z0)/lc.s);
+    if(i<0||j<0||i>=lc.nx||j>=lc.nz)return [0,0,0,0];
+    const k=(j*lc.nx+i)*4,r=lcPx[k]/255,g=lcPx[k+1]/255,b=lcPx[k+2]/255;
+    return [r,g,b,Math.max(0,1-r-g-b)];
+  };
+  const fieldVerge=(opts.fieldVerge??opts.forestMix)?createFieldVerge(trackArr,splatWeights):undefined;
+  const vergeAttribute=(x:number,z:number)=>{
+    const v=fieldVerge!.sample(x,z);
+    // Restrict correction to the blurred roadside band, never whole fields.
+    return [v.field*Math.max(0,Math.min(1,(10-v.free)/3)),Math.max(-4,Math.min(16,v.shoulder))];
+  };
 
   // Terrain is split into square tiles (shared vertex buffers, one index range each) so that three's frustum
   // culling and our fog-distance culling can drop most of it, e.g. inside a forest with 140 m visibility.
@@ -203,6 +217,7 @@ export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer,
       fW = (far.nx - 1) * far.step,
       fH = (far.nz - 1) * far.step;
     const farUv = new Float32Array(n * 2);
+    const fieldAttr=fieldVerge?new Float32Array(n*2):undefined;
     for (let j = 0; j < near.nz; j++)
       for (let i = 0; i < near.nx; i++) {
         const k = j * near.nx + i,
@@ -212,6 +227,7 @@ export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer,
         uv.set([(x - lc.x0) / lcW, (z - lc.z0) / lcH], k * 2);
         farUv.set([(x - far.x0) / fW, (z - far.z0) / fH], k * 2);
         edge[k] = nearEdge[k] / 255;
+        if(fieldAttr)fieldAttr.set(vergeAttribute(x,z),k*2);
       }
     const idx: number[] = [];
     for (let j = 0; j < near.nz - 1; j++)
@@ -228,6 +244,7 @@ export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer,
     g.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
     g.setAttribute("uv1", new THREE.BufferAttribute(farUv, 2));
     g.setAttribute("aEdge", new THREE.BufferAttribute(edge, 1));
+    if(fieldAttr)g.setAttribute('aFieldVerge',new THREE.BufferAttribute(fieldAttr,2));
     g.setIndex(idx);
     g.computeVertexNormals();
     triangles += idx.length / 3;
@@ -249,12 +266,14 @@ export async function loadProcScene(base: string, renderer: THREE.WebGLRenderer,
       sh.vertexShader = sh.vertexShader
         .replace("#include <common>", "#include <common>\nattribute float aEdge;\nattribute vec2 uv1;\nvarying float vEdge;\nvarying vec2 vSplatUv;\nvarying vec2 vFarUv;\nvarying vec3 vWPos;\nvarying vec3 vWN;")
         .replace("#include <begin_vertex>", "#include <begin_vertex>\nvEdge = aEdge; vSplatUv = uv; vFarUv = uv1; vWPos = (modelMatrix * vec4(transformed, 1.0)).xyz; vWN = normalize(mat3(modelMatrix) * objectNormal);");
+      if(fieldVerge)sh.vertexShader='attribute vec2 aFieldVerge; varying vec2 vFieldVerge;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvFieldVerge=aFieldVerge;');
       sh.fragmentShader = sh.fragmentShader
         .replace(
           "#include <common>",
           `#include <common>
 uniform sampler2D uSplat, uGrass, uSoil, uMoss, uFar, uGrassN, uSoilN;
 ${floorArrays?floorPars:'uniform sampler2D uForest, uForestN;'}
+${fieldVerge?fieldVergePars:''}
 varying float vEdge; varying vec2 vSplatUv; varying vec2 vFarUv; varying vec3 vWPos; varying vec3 vWN;
 ${shade.groundPars}
 ${forest?.grounding?.pars ?? ""}
@@ -271,17 +290,20 @@ vec3 tileTex(sampler2D t, vec2 p) {
           "#include <map_fragment>",
           `vec3 sp = texture2D(uSplat, vSplatUv).rgb;
 float wStub = max(0.0, 1.0 - sp.r - sp.g - sp.b);
+${fieldVerge?fieldVergeWeightsGlsl:''}
 vec3 grass = tileTex(uGrass, vWPos.xz);
+vec3 soil = tileTex(uSoil, vWPos.xz);
 // Moss grows in patches rather than coating the whole woodland floor.
 float mossPatch = 0.0;
 if (sp.b > 0.01) mossPatch = smoothstep(0.38, 0.72, shNoise(vWPos.xz / 4.5) * 0.7 + shNoise(vWPos.xz / 1.3) * 0.3);
 vec2 groundShade=texture2D(uShade,(vWPos.xz-uShadeO)/uShadeS).rg;
 ${floorArrays?floorColorGlsl(floorMode,!opts.quality.liteTrees):''}
 vec3 col = grass * sp.r
-  + tileTex(uSoil, vWPos.xz) * sp.g
+  + soil * sp.g
   + ${floorArrays?'forestc':'mix(tileTex(uForest, vWPos.xz), tileTex(uMoss, vWPos.xz * 0.7), 0.08 + mossPatch * 0.55)'} * 0.55 * sp.b
   + grass * vec3(1.35, 1.15, 0.55) * wStub;
 col /= max(0.001, sp.r + sp.g + sp.b + wStub);
+${fieldVerge?fieldVergeColorGlsl:''}
 vec3 farc = texture2D(uFar, vFarUv).rgb * 1.6;
 // macro variation: tint the tiled textures with the real (10 m) Sentinel-2 colour
 float lc = max(0.04, dot(col, vec3(0.333)));
@@ -325,7 +347,7 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
 #endif`,
         );
     };
-    m.customProgramCacheKey=()=>`terrain-floor-${floorMode}-${opts.quality.liteTrees?'coarse':'fine'}`;
+    m.customProgramCacheKey=()=>`terrain-floor-${floorMode}-${opts.quality.liteTrees?'coarse':'fine'}|verge-${!!fieldVerge}`;
     addTiled(g, m, 200, "terrain-near", true);
   }
 
@@ -349,7 +371,6 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
   }
 
   // ---------------- roads ----------------
-  const trackArr = typed(bin, data.layout.track) as Float32Array;
   {
     type Ribbon = { pos: number[]; uv: number[]; profile: number[] };
     const emptyRibbon = (): Ribbon => ({ pos: [], uv: [], profile: [] });
@@ -433,9 +454,10 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
       geo.setAttribute("position", new THREE.Float32BufferAttribute(g.pos, 3));
       geo.setAttribute("uv", new THREE.Float32BufferAttribute(g.uv, 2));
       geo.setAttribute("roadProfile", new THREE.Float32BufferAttribute(g.profile, 2));
+      if(fieldVerge&&verge)geo.setAttribute('aFieldVerge',new THREE.Float32BufferAttribute(g.pos.flatMap((_,i)=>i%3===0?vergeAttribute(g.pos[i],g.pos[i+2]):[]),2));
       geo.computeVertexNormals();
       triangles += g.pos.length / 9;
-      patchRoadSurface(m, T.gravel, verge, name === "road-0");
+      patchRoadSurface(m, T.gravel, verge, name === "road-0",!!fieldVerge&&verge);
       shade.patch(m, 1); // canopy shade on roads through the forest
       const mesh = new THREE.Mesh(geo, track(m));
       mesh.receiveShadow = true;
@@ -618,7 +640,6 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
   // ---------------- trees ----------------
   let refillTrees: (cam: THREE.Vector3, fwd: THREE.Vector3, detailR: number, cardR: number, force?: boolean) => void = () => {};
   let birchCounts = { lod0: 0, lod1: 0, cards: 0 };
-  let splatWeights: (x: number, z: number) => number[] = () => [1, 0, 0, 0];
   let forestW: (x: number, z: number) => number = () => 0;
   // forest-fog culling hook (set once the fog exists): true if an object of radius r at camera offset (dx, dz) is fully fogged
   let fogged: (dx: number, dz: number, r: number) => boolean = () => false;
@@ -1117,16 +1138,6 @@ reflectedLight.directSpecular *= mix(1.0, 0.5, clamp(sp.r + wStub, 0.0, 1.0));
   // ---------------- land-cover lookups (grass placement, forest fog) ----------------
   {
     const px = lcPx;
-    const weights = (splatWeights = (x: number, z: number) => {
-      const i = Math.floor((x - lc.x0) / lc.s),
-        j = Math.floor((z - lc.z0) / lc.s);
-      if (i < 0 || j < 0 || i >= lc.nx || j >= lc.nz) return [0, 0, 0, 0];
-      const k = (j * lc.nx + i) * 4;
-      const r = px[k] / 255,
-        g = px[k + 1] / 255,
-        b = px[k + 2] / 255;
-      return [r, g, b, Math.max(0, 1 - r - g - b)];
-    });
     // forest weight for the fog ray march: bilinear over the 2 m land-cover grid, soft threshold on the B channel
     const fw = new Float32Array(lc.nx * lc.nz);
     for (let k = 0; k < fw.length; k++) fw[k] = Math.min(1, Math.max(0, (px[k * 4 + 2] / 255 - 0.2) / 0.5));

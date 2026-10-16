@@ -16,6 +16,7 @@
       :forest-stage="forestStage"
       :tree-grounding="treeGrounding"
       :forest-floor="forestFloor"
+      :field-verge="fieldVerge"
       :eye-height-m="eyeH"
       :time-s="timeS"
       :test-mode="testMode"
@@ -98,6 +99,7 @@ const quality = parseQuality(q.get("q"));
 const wind = q.get("wind") !== "0";
 const treeGrounding = q.get("grounding") === "off" ? "off" : q.get("grounding") === "shade" ? "shade" : "full";
 const forestMix = q.get("forest") === "mix";
+const fieldVerge = forestMix && q.get('fieldVerge') !== '0';
 const forestFloor = parseForestFloor(q.get('floor'),forestMix);
 const forestStage = ["cards","trees","shrubs","grass","full"].includes(q.get("forestStage") ?? "") ? q.get("forestStage")! : "full";
 const allBirches = !forestMix && q.get("birch") === "all";

@@ -44,6 +44,7 @@ const props = withDefaults(
     forestStage?: string;
     treeGrounding?: "off" | "shade" | "full";
     forestFloor?: ForestFloorMode;
+    fieldVerge?: boolean;
     /** test mode: fixed animation time [s] (for reproducible frames / wind sequences) */
     timeS?: number;
   }>(),
@@ -213,7 +214,7 @@ onMounted(async () => {
   window.addEventListener("resize", resize);
 
   const base = props.scene.endsWith("/") ? props.scene : props.scene + "/";
-  const [hdr, b] = await Promise.all([new HDRLoader().loadAsync("scene-assets/sky.hdr"), loadProcScene(base, renderer, { quality: preset, birchPreview: props.birchPreview, birchCards: props.birchCards, allBirches: props.allBirches, forestMix: props.forestMix, forestStage: props.forestStage, treeGrounding: props.treeGrounding, forestFloor: props.forestFloor })]);
+  const [hdr, b] = await Promise.all([new HDRLoader().loadAsync("scene-assets/sky.hdr"), loadProcScene(base, renderer, { quality: preset, birchPreview: props.birchPreview, birchCards: props.birchCards, allBirches: props.allBirches, forestMix: props.forestMix, forestStage: props.forestStage, treeGrounding: props.treeGrounding, forestFloor: props.forestFloor, fieldVerge: props.fieldVerge })]);
   if (disposed) return;
   built = b;
   hdr.mapping = THREE.EquirectangularReflectionMapping;
